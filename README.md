@@ -1,6 +1,6 @@
 ## hwstat
 
-Function for collecting and outputting hardware information from different sources in the operating system.
+Function collecting hardware statistic from different sources in the operating system for output in one place.
 
 Tested by Ubuntu Server 20.04.2 and 22.04.2.
 
