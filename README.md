@@ -2,9 +2,9 @@
 
 Function for collecting and outputting hardware information from different sources in the operating system.
 
-Tested in Ubuntu Server 20.04.2 and 22.04.2.
+Tested by Ubuntu Server 20.04.2 and 22.04.2.
 
-Sources of data collection:
+**Sources of data collection:**
 - uname
 - timedatectl
 - systemctl
@@ -15,10 +15,10 @@ Sources of data collection:
 - dmidecode (use root permission)
 - lspci
 - mount
-- ls /dev and /sys/class/net
+- ls `/dev` and `/sys/class/net`
 - resolvectl
 
-### Example
+### Example:
 
 ```bash
 root@devops-01:~# bash hwstat.sh
