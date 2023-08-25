@@ -1,6 +1,6 @@
 function hwstat {
 # apt list --installed
-# cat /etc/passwd # кол-во пользв
+# cat /etc/passwd
 hn=$(uname -a | awk '{print $2}')
 time=$(timedatectl | grep Local | sed -E "s/.+time: //")
 tz=$(timedatectl | grep zone | sed -E "s/.+zone: //")
