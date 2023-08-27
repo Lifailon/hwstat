@@ -2,6 +2,8 @@
 
 Function collecting hardware statistic from different sources in the operating system for output in one place.
 
+It is convenient for the system administrator to get all the information quickly without having to remember all the commands and filter the output.
+
 Tested by Ubuntu Server 20.04.2 and 22.04.2.
 
 **Sources of data collection:**
