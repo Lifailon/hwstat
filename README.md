@@ -32,9 +32,9 @@ Tested by Ubuntu Server 20.04.2 and 22.04.2.
 root@devops-01:~# bash hwstat.sh
 
 Hostname              : devops-01
-Uptime                : 1 day 18:09
+Uptime                : 1 day 20:21
 Startup               : 9.629s (kernel) + 44.419s (userspace) = 54.048s
-Local Time            : Mon 2023-08-28 00:09:40 MSK
+Local Time            : Mon 2023-08-28 02:22:08 MSK
 Time Zone             : Europe/Moscow (MSK, +0300)
 NTP service           : active
 NTP server            : 91.189.91.157:123 (ntp.ubuntu.com)
@@ -67,9 +67,10 @@ User count            : 38
 User directories      : Jenkins, lifailon
 Network Interfaces    : ens33, lo
 Current DNS Server    : 192.168.3.101
-DPKG Packet count     : 782
-APT show auto/manual  : 732/45
-Zabbix agent status   : active (running) since Sun 2023-08-27 23:00:02 MSK; 1h 9min ago
+Unit Startup count    : 94/373
+DPKG Packet count     : 783
+APT show auto/manual  : 732/46
+Zabbix agent status   : active (running) since Sun 2023-08-27 23:00:02 MSK; 3h 22min ago
 Zabbix config         : /etc/zabbix/zabbix_agentd.conf
 Zabbix server         : 192.168.3.102
 ```
