@@ -39,6 +39,8 @@ home=$(echo ${home[@]} | sed "s/ /, /")
 int=($(ls /sys/class/net))
 int=$(echo ${int[@]} | sed "s/ /, /")
 dns=$(resolvectl status | grep "Current DNS" | awk -F": " '{print $2}')
+unit_all=$(systemctl list-unit-files | sed "1d" | wc -l)
+unit_startup=$(systemctl list-unit-files --state=enabled | sed "1d" | wc -l)
 dpkg=$(dpkg -l | wc -l)
 showauto=$(apt-mark showauto | wc -l)
 showmanual=$(apt-mark showmanual | wc -l)
@@ -81,6 +83,7 @@ echo "User count            : $usr"
 echo "User directories      : $home"
 echo "Network Interfaces    : $int"
 echo "Current DNS Server    : $dns"
+echo "Unit Startup count    : $unit_startup/$unit_all"
 echo "DPKG Packet count     : $dpkg"
 echo "APT show auto/manual  : $showauto/$showmanual"
 echo "Zabbix agent status   : $zabbix_status"
