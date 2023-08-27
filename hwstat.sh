@@ -1,5 +1,7 @@
 function hwstat {
 hn=$(uname -a | awk '{print $2}')
+uptime=$(uptime | sed -E "s/^ ..:..:.. up //; s/ [0-9] user.+//; s/,//g")
+startup=$(systemd-analyze | sed -n "1p" | sed "s/Startup finished in //")
 time=$(timedatectl | grep Local | sed -E "s/.+time: //")
 tz=$(timedatectl | grep zone | sed -E "s/.+zone: //")
 ntp=$(timedatectl | grep NTP | sed -E "s/.+service: //")
@@ -44,6 +46,8 @@ zabbix_status=$(systemctl status zabbix-agent | grep Active | awk -F": " '{print
 zabbix_path=$(systemctl status zabbix-agent | grep -P -o "(?<=-c ).*(?=.conf)" | sed "s/$/.conf/")
 zabbix_server=$(cat $zabbix_path | grep -Po "(?<=^Server=).+")
 echo "Hostname              : $hn"
+echo "Uptime                : $uptime"
+echo "Startup               : $startup"
 echo "Local Time            : $time"
 echo "Time Zone             : $tz"
 echo "NTP service           : $ntp"
