@@ -21,6 +21,7 @@ rel=$(dmidecode -t bios | grep Release | sed -E "s/.+Release Date: //" | sed "s/
 mem=$(free -m | grep Mem | awk '{print $2}')
 swap=$(free -m | grep Swap | awk '{print $2}')
 mount=$(swapon | sed '1d' | awk '{print $2,$1}')
+swaprun=$(sysctl vm.swappiness | awk -F "= " '{print $2}')
 eth=$(lspci | grep -i ethernet | awk -F": " '{print $NF}')
 video=$(lspci | grep -i vga | awk -F": " '{print $NF}')
 audio=$(lspci | grep -i audio | awk -F": " '{print $NF}')
@@ -30,20 +31,26 @@ sd=$(ls -l /dev | grep sd | awk '{print $NF}')
 sd=$(echo $sd | sed -E "s/\s/, /g")
 lsblk=$(lsblk | grep -w "sd.." | awk '{print $1" ("$4"),"}' | sed -r "s/├─|└─//")
 lsblk=$(echo $lsblk | sed -r "s/,$//")
+diskmodel=$(lsblk -o NAME,MODEL,SERIAL,SIZE,STATE --nodeps | grep -Ew "running" | awk '{print $1,$2,$3,$4,$5,$6,$7,$8","}' | sed -E "s/ running//")
+diskmodel=$(echo $diskmodel | sed -r "s/,$//")
 pvs=$(pvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$6"/"$5")"}')
 vgs=$(vgs | sed "1d; s/<//" | awk '{print $1" pdisk:"$2" lgroup:"$3" ("$7"/"$6")"}')
 lvs=$(lvs | sed "1d; s/<//" | awk '{print $1" "$2" ("$4")"}')
+descriptor=$(sysctl -a | grep fs.file-max | awk -F "= " '{print $2}')
 usr=$(cat /etc/passwd | wc -l)
 home=($(ls /home))
-home=$(echo ${home[@]} | sed "s/ /, /")
+home=$(echo ${home[@]} | sed "s/ /, /g")
 int=($(ls /sys/class/net))
-int=$(echo ${int[@]} | sed "s/ /, /")
+int=$(echo ${int[@]} | sed "s/ /, /g")
 dns=$(resolvectl status | grep "Current DNS" | awk -F": " '{print $2}')
+dnslist=$(networkctl status | sed -E "s/Gateway.+//; s/Address.+//" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")
+dnslist=$(echo $dnslist | sed "s/ /, /g")
 unit_all=$(systemctl list-unit-files | sed "1d" | wc -l)
 unit_startup=$(systemctl list-unit-files --state=enabled | sed "1d" | wc -l)
-dpkg=$(dpkg -l | wc -l)
 showauto=$(apt-mark showauto | wc -l)
 showmanual=$(apt-mark showmanual | wc -l)
+dpkg=$(dpkg -l | wc -l)
+snap=$(snap list | sed 1d | wc -l)
 zabbix_status=$(systemctl status zabbix-agent | grep Active | awk -F": " '{print $2}')
 zabbix_path=$(systemctl status zabbix-agent | grep -P -o "(?<=-c ).*(?=.conf)" | sed "s/$/.conf/")
 zabbix_server=$(cat $zabbix_path | grep -Po "(?<=^Server=).+")
@@ -69,6 +76,7 @@ echo "BIOS Release          : $rel"
 echo "Memory                : $mem MB"
 echo "SWAP                  : $swap MB"
 echo "SWAP Mount            : $mount"
+echo "SWAP Running free mem : $swaprun%"
 echo "Ethernet Adapter      : $eth "
 echo "VGA controller        : $video"
 echo "Audio controller      : $audio"
@@ -76,16 +84,20 @@ echo "SCSI controller       : $scsi"
 echo "SATA controller       : $sata"
 echo "Disk and Volume       : $sd"
 echo "Disk and Volume size  : $lsblk"
+echo "Disk Model            : $diskmodel"
 echo "Physical Volume       : $pvs"
 echo "Volume Group          : $vgs"
 echo "Logical Volume        : $lvs"
+echo "Descriptor file max   : $descriptor"
 echo "User count            : $usr"
 echo "User directories      : $home"
 echo "Network Interfaces    : $int"
 echo "Current DNS Server    : $dns"
+echo "DNS Server List       : $dnslist"
 echo "Unit Startup count    : $unit_startup/$unit_all"
-echo "DPKG Packet count     : $dpkg"
 echo "APT show auto/manual  : $showauto/$showmanual"
+echo "DPKG Packet count     : $dpkg"
+echo "SNAP Packet count     : $snap"
 echo "Zabbix agent status   : $zabbix_status"
 echo "Zabbix config         : $zabbix_path"
 echo "Zabbix server         : $zabbix_server"
