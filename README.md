@@ -36,9 +36,9 @@ Tested by Ubuntu Server 20.04.2 and 22.04.2.
 root@devops-01:~# bash hwstat.sh
 
 Hostname                : devops-01
-Uptime                  : 3 days 14:41
+Uptime                  : 3 days 14:46
 Startup                 : 9.629s (kernel) + 44.419s (userspace) = 54.048s
-Local Time              : Tue 2023-08-29 20:42:01 MSK
+Local Time              : Tue 2023-08-29 20:47:09 MSK
 Time Zone               : Europe/Moscow (MSK, +0300)
 NTP service             : active
 NTP server              : 91.189.91.157:123 (ntp.ubuntu.com)
@@ -65,10 +65,10 @@ SCSI controller         : Broadcom / LSI 53c1030 PCI-X Fusion-MPT Dual Ultra320 
 SATA controller         : VMware SATA AHCI controller
 Disk and Volume         : sda, sda1, sda2, sda3
 Disk and Volume size    : sda (50G), sda1 (1M), sda2 (2G), sda3 (48G)
-Disk Model              : sda VMware Virtual S 50G , sr0 VMware Virtual SATA CDRW Drive 1.8G
-LVM Physical Volume     : /dev/sda3 -> ubuntu-vg (0/48.00g)
+Disk Model              : sda VMware Virtual S 50G , sr0 VMware Virtual SATA CDRW Drive 01000000000000000001 1.8G
 LVM Volume Group        : ubuntu-vg pdisk:1 lgroup:1 (0/48.00g)
-LVM Logical Volume      : ubuntu-lv ubuntu-vg (48.00g)
+LVM Physical Volume     : /dev/sda3 -> ubuntu-vg (0/48.00g)
+LVM Logical Volume      : ubuntu-lv -> ubuntu-vg (48.00g)
 Network Interfaces      : ens33, lo
 Current DNS Server      : 8.8.8.8
 DNS Server List         : 192.168.3.101, 8.8.8.8, 1.1.1.1
