@@ -36,7 +36,7 @@ diskmodel=$(echo $diskmodel | sed -r "s/,$//")
 pvs=$(pvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$6"/"$5")"}')
 vgs=$(vgs | sed "1d; s/<//" | awk '{print $1" pdisk:"$2" lgroup:"$3" ("$7"/"$6")"}')
 lvs=$(lvs | sed "1d; s/<//" | awk '{print $1" "$2" ("$4")"}')
-descriptor=$(sysctl -a | grep fs.file-max | awk -F "= " '{print $2}')
+descriptor=$(sysctl fs.file-max | awk -F "= " '{print $2}')
 limits=$(cat /etc/security/limits.conf | grep -Ev "^$|^#" | wc -l)
 usr=$(cat /etc/passwd | wc -l)
 home=($(ls /home))
@@ -90,6 +90,7 @@ echo "Physical Volume       : $pvs"
 echo "Volume Group          : $vgs"
 echo "Logical Volume        : $lvs"
 echo "Descriptor file max   : $descriptor"
+echo "Limits count          : $limits"
 echo "User count            : $usr"
 echo "User directories      : $home"
 echo "Network Interfaces    : $int"
