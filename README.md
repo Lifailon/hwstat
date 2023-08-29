@@ -21,7 +21,7 @@ Tested by Ubuntu Server 20.04.2 and 22.04.2.
 - sysctl
 - lspci
 - lsblk
-- lvm
+- lvm (use root permission)
 - limits
 - resolvectl
 - networkctl
