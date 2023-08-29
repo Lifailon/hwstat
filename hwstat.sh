@@ -33,9 +33,9 @@ lsblk=$(lsblk | grep -w "sd.." | awk '{print $1" ("$4"),"}' | sed -r "s/├─|�
 lsblk=$(echo $lsblk | sed -r "s/,$//")
 diskmodel=$(lsblk -o NAME,MODEL,SERIAL,SIZE,STATE --nodeps | grep -Ew "running" | awk '{print $1,$2,$3,$4,$5,$6,$7,$8","}' | sed -E "s/ running//")
 diskmodel=$(echo $diskmodel | sed -r "s/,$//")
-pvs=$(pvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$6"/"$5")"}')
 vgs=$(vgs | sed "1d; s/<//" | awk '{print $1" pdisk:"$2" lgroup:"$3" ("$7"/"$6")"}')
-lvs=$(lvs | sed "1d; s/<//" | awk '{print $1" "$2" ("$4")"}')
+pvs=$(pvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$6"/"$5")"}')
+lvs=$(lvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$4")"}')
 int=($(ls /sys/class/net))
 int=$(echo ${int[@]} | sed "s/ /, /g")
 dns=$(resolvectl status | grep "Current DNS" | awk -F": " '{print $2}')
@@ -89,8 +89,8 @@ echo "SATA controller         : $sata"
 echo "Disk and Volume         : $sd"
 echo "Disk and Volume size    : $lsblk"
 echo "Disk Model              : $diskmodel"
-echo "LVM Physical Volume     : $pvs"
 echo "LVM Volume Group        : $vgs"
+echo "LVM Physical Volume     : $pvs"
 echo "LVM Logical Volume      : $lvs"
 echo "Network Interfaces      : $int"
 echo "Current DNS Server      : $dns"
