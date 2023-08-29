@@ -36,11 +36,6 @@ diskmodel=$(echo $diskmodel | sed -r "s/,$//")
 pvs=$(pvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$6"/"$5")"}')
 vgs=$(vgs | sed "1d; s/<//" | awk '{print $1" pdisk:"$2" lgroup:"$3" ("$7"/"$6")"}')
 lvs=$(lvs | sed "1d; s/<//" | awk '{print $1" "$2" ("$4")"}')
-descriptor=$(sysctl fs.file-max | awk -F "= " '{print $2}')
-limits=$(cat /etc/security/limits.conf | grep -Ev "^$|^#" | wc -l)
-usr=$(cat /etc/passwd | wc -l)
-home=($(ls /home))
-home=$(echo ${home[@]} | sed "s/ /, /g")
 int=($(ls /sys/class/net))
 int=$(echo ${int[@]} | sed "s/ /, /g")
 dns=$(resolvectl status | grep "Current DNS" | awk -F": " '{print $2}')
@@ -49,12 +44,17 @@ dnslist=$(echo $dnslist | sed "s/ /, /g")
 tcp_max_syn_backlog=$(sysctl net.ipv4.tcp_max_syn_backlog | awk -F "= " '{print $2}')
 somaxconn=$(sysctl net.core.somaxconn | awk -F "= " '{print $2}')
 netdev_max_backlog=$(sysctl net.core.netdev_max_backlog | awk -F "= " '{print $2}')
+descriptor=$(sysctl fs.file-max | awk -F "= " '{print $2}')
+limits=$(cat /etc/security/limits.conf | grep -Ev "^$|^#" | wc -l)
 unit_all=$(systemctl list-unit-files | sed "1d" | wc -l)
 unit_startup=$(systemctl list-unit-files --state=enabled | sed "1d" | wc -l)
 showauto=$(apt-mark showauto | wc -l)
 showmanual=$(apt-mark showmanual | wc -l)
 dpkg=$(dpkg -l | wc -l)
 snap=$(snap list | sed 1d | wc -l)
+usr=$(cat /etc/passwd | wc -l)
+home=($(ls /home))
+home=$(echo ${home[@]} | sed "s/ /, /g")
 zabbix_status=$(systemctl status zabbix-agent | grep Active | awk -F": " '{print $2}')
 zabbix_path=$(systemctl status zabbix-agent | grep -P -o "(?<=-c ).*(?=.conf)" | sed "s/$/.conf/")
 zabbix_server=$(cat $zabbix_path | grep -Po "(?<=^Server=).+")
@@ -89,23 +89,23 @@ echo "SATA controller         : $sata"
 echo "Disk and Volume         : $sd"
 echo "Disk and Volume size    : $lsblk"
 echo "Disk Model              : $diskmodel"
-echo "Physical Volume         : $pvs"
-echo "Volume Group            : $vgs"
-echo "Logical Volume          : $lvs"
-echo "Descriptor file max     : $descriptor"
-echo "Limits count            : $limits"
-echo "User count              : $usr"
-echo "User directories        : $home"
+echo "LVM Physical Volume     : $pvs"
+echo "LVM Volume Group        : $vgs"
+echo "LVM Logical Volume      : $lvs"
 echo "Network Interfaces      : $int"
 echo "Current DNS Server      : $dns"
 echo "DNS Server List         : $dnslist"
 echo "TCP max syn backlog     : $tcp_max_syn_backlog"
 echo "TCP max connect backlog : $somaxconn"
 echo "Net Kernel max backlog  : $netdev_max_backlog"
+echo "Descriptor file max     : $descriptor"
+echo "Limits count            : $limits"
 echo "Unit Startup count      : $unit_startup/$unit_all"
 echo "APT show auto/manual    : $showauto/$showmanual"
 echo "DPKG Packet count       : $dpkg"
 echo "SNAP Packet count       : $snap"
+echo "User count              : $usr"
+echo "User directories        : $home"
 echo "Zabbix agent status     : $zabbix_status"
 echo "Zabbix config           : $zabbix_path"
 echo "Zabbix server           : $zabbix_server"
