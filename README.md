@@ -21,14 +21,14 @@ Tested by Ubuntu Server 20.04.2 and 22.04.2.
 - sysctl
 - lspci
 - lsblk
-- lvm (pvs, vgs, lvs)
+- lvm
+- limits
 - resolvectl
 - networkctl
 - systemctl
 - apt-mark
 - dpkg
 - snap
-- limits
 
 ### Example:
 
@@ -36,9 +36,9 @@ Tested by Ubuntu Server 20.04.2 and 22.04.2.
 root@devops-01:~# bash hwstat.sh
 
 Hostname              : devops-01
-Uptime                : 3 days 13:15
+Uptime                : 3 days 13:22
 Startup               : 9.629s (kernel) + 44.419s (userspace) = 54.048s
-Local Time            : Tue 2023-08-29 19:15:58 MSK
+Local Time            : Tue 2023-08-29 19:22:52 MSK
 Time Zone             : Europe/Moscow (MSK, +0300)
 NTP service           : active
 NTP server            : 91.189.91.157:123 (ntp.ubuntu.com)
@@ -70,6 +70,7 @@ Physical Volume       : /dev/sda3 -> ubuntu-vg (0/48.00g)
 Volume Group          : ubuntu-vg pdisk:1 lgroup:1 (0/48.00g)
 Logical Volume        : ubuntu-lv ubuntu-vg (48.00g)
 Descriptor file max   : 9223372036854775807
+Limits count          : 0
 User count            : 40
 User directories      : Jenkins, lifailon
 Network Interfaces    : ens33, lo
