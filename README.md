@@ -65,7 +65,7 @@ SCSI controller         : Broadcom / LSI 53c1030 PCI-X Fusion-MPT Dual Ultra320 
 SATA controller         : VMware SATA AHCI controller
 Disk and Volume         : sda, sda1, sda2, sda3
 Disk and Volume size    : sda (50G), sda1 (1M), sda2 (2G), sda3 (48G)
-Disk Model              : sda VMware Virtual S 50G , sr0 VMware Virtual SATA CDRW Drive 01000000000000000001 1.8G
+Disk Model              : sda VMware Virtual S 50G , sr0 VMware Virtual SATA CDRW Drive 1.8G
 LVM Volume Group        : ubuntu-vg pdisk:1 lgroup:1 (0/48.00g)
 LVM Physical Volume     : /dev/sda3 -> ubuntu-vg (0/48.00g)
 LVM Logical Volume      : ubuntu-lv -> ubuntu-vg (48.00g)
