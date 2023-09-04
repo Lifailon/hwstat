@@ -29,13 +29,18 @@ scsi=$(lspci | grep -i scsi | awk -F": " '{print $NF}')
 sata=$(lspci | grep -i sata | awk -F": " '{print $NF}')
 sd=$(ls -l /dev | grep sd | awk '{print $NF}')
 sd=$(echo $sd | sed -E "s/\s/, /g")
-lsblk=$(lsblk | grep -w "sd.." | awk '{print $1" ("$4"),"}' | sed -r "s/├─|└─//")
+lsblk=$(lsblk | grep -w "sd." | awk '{print $1" ("$4"),"}')
 lsblk=$(echo $lsblk | sed -r "s/,$//")
-diskmodel=$(lsblk -o NAME,MODEL,SERIAL,SIZE,STATE --nodeps | grep -Ew "running" | awk '{print $1,$2,$3,$4,$5,$6,$7,$8","}' | sed -E "s/ running//")
+diskmodel=$(lsblk -o NAME,MODEL,SIZE,STATE --nodeps | grep -Ew "running" | awk '{print $0","}' | sed -E "s/ running//")
 diskmodel=$(echo $diskmodel | sed -r "s/,$//")
-vgs=$(vgs | sed "1d; s/<//" | awk '{print $1" pdisk:"$2" lgroup:"$3" ("$7"/"$6")"}')
-pvs=$(pvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$6"/"$5")"}')
-lvs=$(lvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$4")"}')
+df=$(df -h | sed 1d | grep -vE "mapper|vg|lv|tmpfs" | awk '{print $1" ("$4"/"$2"),"}')
+df=$(echo $df | sed -r "s/,$//")
+vgs=$(vgs | sed "1d; s/<//" | awk '{print $1" pdisk:"$2" lgroup:"$3" ("$7"/"$6"),"}')
+vgs=$(echo $vgs | sed -r "s/,$//")
+pvs=$(pvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$6"/"$5"),"}')
+pvs=$(echo $pvs | sed -r "s/,$//")
+lvs=$(lvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$4"),"}')
+lvs=$(echo $lvs | sed -r "s/,$//")
 int=($(ls /sys/class/net))
 int=$(echo ${int[@]} | sed "s/ /, /g")
 dns=$(resolvectl status | grep "Current DNS" | awk -F": " '{print $2}')
@@ -44,7 +49,16 @@ dnslist=$(echo $dnslist | sed "s/ /, /g")
 tcp_max_syn_backlog=$(sysctl net.ipv4.tcp_max_syn_backlog | awk -F "= " '{print $2}')
 somaxconn=$(sysctl net.core.somaxconn | awk -F "= " '{print $2}')
 netdev_max_backlog=$(sysctl net.core.netdev_max_backlog | awk -F "= " '{print $2}')
+tcp_keepalive=$(sysctl -a | grep net.ipv4.tcp_keepalive | grep -Po "(?<=\=\s)[0-9]+")
+keep_print=$(echo $tcp_keepalive | awk '{print $3"+("$1"*"$2")"}')
+keep_sum=$(echo $tcp_keepalive | awk '{print $3+($1*$2)}')
+icmp_ignore=$(cat /proc/sys/net/ipv4/icmp_echo_ignore_all)
+icmp=$(if (( $(echo "$icmp_ignore == 1" | bc) )); then echo "true"; else echo "false"; fi)
+route=$(cat /proc/sys/net/ipv4/ip_forward)
+route_ip_forward=$(if (( $(echo "$route == 1" | bc) )); then echo "true"; else echo "false"; fi)
+use=$(cat /proc/sys/fs/file-nr | awk '{print $1}')
 descriptor=$(sysctl fs.file-max | awk -F "= " '{print $2}')
+lsof=$(lsof | sed 1d | wc -l)
 limits=$(cat /etc/security/limits.conf | grep -Ev "^$|^#" | wc -l)
 unit_all=$(systemctl list-unit-files | sed "1d" | wc -l)
 unit_startup=$(systemctl list-unit-files --state=enabled | sed "1d" | wc -l)
@@ -86,9 +100,10 @@ echo "VGA controller          : $video"
 echo "Audio controller        : $audio"
 echo "SCSI controller         : $scsi"
 echo "SATA controller         : $sata"
-echo "Disk and Volume         : $sd"
-echo "Disk and Volume size    : $lsblk"
-echo "Disk Model              : $diskmodel"
+echo "All Disk and Volume     : $sd"
+echo "Disk size               : $lsblk"
+echo "Disk Running Model      : $diskmodel"
+echo "Mount Filesystem free   : $df"
 echo "LVM Volume Group        : $vgs"
 echo "LVM Physical Volume     : $pvs"
 echo "LVM Logical Volume      : $lvs"
@@ -98,7 +113,11 @@ echo "DNS Server List         : $dnslist"
 echo "TCP max syn backlog     : $tcp_max_syn_backlog"
 echo "TCP max connect backlog : $somaxconn"
 echo "Net Kernel max backlog  : $netdev_max_backlog"
-echo "Descriptor file max     : $descriptor"
+echo "TCP Keepalive Time Live : $keep_print=$keep_sum"
+echo "ICMP ignore             : $icmp"
+echo "Route ip forward        : $route_ip_forward"
+echo "Descriptor File use/max : $use/$descriptor"
+echo "List Open Files count   : $lsof"
 echo "Limits count            : $limits"
 echo "Unit Startup count      : $unit_startup/$unit_all"
 echo "APT show auto/manual    : $showauto/$showmanual"
