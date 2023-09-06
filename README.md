@@ -27,6 +27,7 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 - lsblk
 - df
 - lvm **(use root permission)**
+- ethtool
 - resolvectl
 - networkctl
 - lsof
@@ -46,9 +47,9 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 root@devops-01:~# bash hwstat.sh
 
 Hostname                : devops-01
-Uptime                  : 4 days  4:52
+Uptime                  : 4 days  7:25
 Startup                 : 10.804s (kernel) + 40.423s (userspace) = 51.228s
-Local Time              : Wed 2023-09-06 16:36:14 MSK
+Local Time              : Wed 2023-09-06 19:10:25 MSK
 Time Zone               : Europe/Moscow (MSK, +0300)
 NTP service             : active
 NTP server              : 91.189.91.157:123 (ntp.ubuntu.com)
@@ -65,14 +66,14 @@ Motherboard             : 440BX Desktop Reference Platform
 BIOS                    : Phoenix Technologies LTD
 BIOS Version            : 6.00
 BIOS Release            : 11.12.2020
-Process Started count   : 264
-Running/All Process     : 1/424
-CPU avg 1/5/15 min      : 0.51 0.57 0.60
-CPU avg usr/sys/wa/idle : 4     6       0       90
-CPU cur usr/sys/wa/idle : 5     10      0       85
-IOps avg in/out         : 27    1012
-IOps current in/out     : 0     1240
-Memory use/all          : 1638/3876 MB
+Process Started count   : 261
+Running/All Process     : 3/422
+CPU avg 1/5/15 min      : 0.80 0.88 0.83
+CPU avg usr/sys/wa/idle : 4     7       0       89
+CPU cur usr/sys/wa/idle : 12    23      0       65
+IOps avg in/out         : 26    1018
+IOps current in/out     : 0     1064
+Memory use/all          : 1596/3876 MB
 SWAP use/all            : 85/3888 MB
 SWAP Mount              : file /swap.img
 SWAP Running free mem   : 60%
@@ -88,7 +89,8 @@ Mount Filesystem free   : /dev/sda2 (1.6G/2.0G), //192.168.3.100/Backup (497G/1.
 LVM Volume Group        : ubuntu-vg pdisk:2 lgroup:2 (976.00m/57.99g)
 LVM Physical Volume     : /dev/sda3 -> ubuntu-vg (0/48.00g), /dev/sdb1 -> ubuntu-vg (976.00m/10.00g)
 LVM Logical Volume      : snap-1 -> ubuntu-vg (1.00g), ubuntu-lv -> ubuntu-vg (56.04g)
-Network Interfaces      : ens33, lo
+Network Interfaces      : ens33, ens37
+Network Driver/Speed    : ens33 (e1000/1000Mb/s), ens37 (e1000/1000Mb/s)
 Current DNS Server      : 192.168.3.101
 DNS Server List         : 192.168.3.101, 8.8.8.8, 1.1.1.1
 TCP max syn backlog     : 256
@@ -98,24 +100,24 @@ TCP Keepalive Time Live : 7200+(75*9)=7875
 ICMP ignore             : false
 Route ip forward        : false
 Descriptor File use/max : 2560/9223372036854775807
-List Open Files count   : 36608
-All dir and files count : 518085
+List Open Files count   : 36486
+All dir and files count : 520132
 Limits count            : 0
-Socket ESTAB count      : 22
-Unique open net ports   : 2121, 3306, 57934, 8080
+Socket ESTAB count      : 20
+Unique open net ports   : 2121, 3306, 57934
 iptables rule count     : 1
 UFW Status              : inactive
 Unit Startup count      : 109/398
-APT show auto/manual    : 826 (767/59)
-APT Last Update         : 6 Sep 15:14
+APT show auto/manual    : 828 (767/61)
+APT Last Update         : 6 Sep 17:50
 APT List Upgrade count  : 2
-DPKG Packet count       : 837
+DPKG Packet count       : 839
 SNAP Packet count       : 4
 User count              : 41
 User directories        : Jenkins, lifailon
 Bash version            : 5.1.16(1)-release (x86_64-pc-linux-gnu)
 Python version          : 3.10.12
-Zabbix Agent status     : active (running) since Tue 2023-09-05 23:00:01 MSK; 17h ago
+Zabbix Agent status     : active (running) since Tue 2023-09-05 23:00:01 MSK; 20h ago
 Zabbix Agent version    : 6.4.6
 Zabbix config           : /etc/zabbix/zabbix_agentd.conf
 Zabbix server           : 192.168.3.102
