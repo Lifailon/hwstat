@@ -43,7 +43,7 @@ swap_all=$(free -m | grep Swap | awk '{print $2}')
 swap_use=$(free -m | grep Swap | awk '{print $3}')
 mount=$(swapon | sed '1d' | awk '{print $2,$1}')
 swaprun=$(sysctl vm.swappiness | awk -F "= " '{print $2}')
-eth=$(lspci | grep -i ethernet | awk -F": " '{print $NF}')
+eth=$(lspci | grep -i ethernet | awk -F": " '{print $NF}' | sed -n 1p)
 video=$(lspci | grep -i vga | awk -F": " '{print $NF}')
 audio=$(lspci | grep -i audio | awk -F": " '{print $NF}')
 scsi=$(lspci | grep -i scsi | awk -F": " '{print $NF}')
@@ -62,8 +62,16 @@ pvs=$(pvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$6"/"$5"),"}')
 pvs=$(echo $pvs | sed -r "s/,$//")
 lvs=$(lvs | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$4"),"}')
 lvs=$(echo $lvs | sed -r "s/,$//")
-int=($(ls /sys/class/net))
-int=$(echo ${int[@]} | sed "s/ /, /g")
+int=($(ls /sys/class/net | sed "s/lo//"))
+interface=$(echo ${int[@]} | sed "s/ /, /g")
+net_driver=()
+for i in ${int[@]}
+do
+driver=$(ethtool -i $i | grep driver | sed "s/driver: //")
+speed=$(ethtool $i | grep -i speed | sed -E "s/.+: //")
+net_driver+=($(echo "$i ($driver/$speed),"))
+done
+net_driver=$(echo ${net_driver[@]} | sed "s/,$//")
 dns=$(resolvectl status | grep "Current DNS" | awk -F": " '{print $2}')
 dnslist=$(networkctl status | sed -E "s/Gateway.+//; s/Address.+//" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")
 dnslist=$(echo $dnslist | sed "s/ /, /g")
@@ -147,7 +155,7 @@ echo "Memory use/all          : $mem_use/$mem_all MB"
 echo "SWAP use/all            : $swap_use/$swap_all MB"
 echo "SWAP Mount              : $mount"
 echo "SWAP Running free mem   : $swaprun%"
-echo "Ethernet Adapter        : $eth "
+echo "Ethernet Adapter        : $eth"
 echo "VGA controller          : $video"
 echo "Audio controller        : $audio"
 echo "SCSI controller         : $scsi"
@@ -159,7 +167,8 @@ echo "Mount Filesystem free   : $df"
 echo "LVM Volume Group        : $vgs"
 echo "LVM Physical Volume     : $pvs"
 echo "LVM Logical Volume      : $lvs"
-echo "Network Interfaces      : $int"
+echo "Network Interfaces      : $interface"
+echo "Network Driver/Speed    : $net_driver"
 echo "Current DNS Server      : $dns"
 echo "DNS Server List         : $dnslist"
 echo "TCP max syn backlog     : $tcp_max_syn_backlog"
