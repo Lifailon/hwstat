@@ -15,7 +15,7 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 - systemctl
 - lsb_release
 - lscpu
-- dmidecode (use root permission)
+- dmidecode **(use root permission)**
 - ps
 - loadavg
 - vmstat
@@ -26,7 +26,7 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 - lspci
 - lsblk
 - df
-- lvm (use root permission)
+- lvm **(use root permission)**
 - resolvectl
 - networkctl
 - lsof
