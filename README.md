@@ -4,7 +4,7 @@ Function collecting hardware and software statistic from different sources in th
 
 It is convenient for the system administrator to get all the information quickly without having to remember all the commands and filter the output.
 
-Tested by Ubuntu Server 20.04 and 22.04
+Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 
 ### Sources of data collection:
 
@@ -34,9 +34,11 @@ Tested by Ubuntu Server 20.04 and 22.04
 - limits
 - ss
 - iptables
+- ufw
 - apt
 - dpkg
 - snap
+- version
 
 ### Example:
 
@@ -44,9 +46,9 @@ Tested by Ubuntu Server 20.04 and 22.04
 root@devops-01:~# bash hwstat.sh
 
 Hostname                : devops-01
-Uptime                  : 4 days  2:40
+Uptime                  : 4 days  4:44
 Startup                 : 10.804s (kernel) + 40.423s (userspace) = 51.228s
-Local Time              : Wed 2023-09-06 14:24:22 MSK
+Local Time              : Wed 2023-09-06 16:28:19 MSK
 Time Zone               : Europe/Moscow (MSK, +0300)
 NTP service             : active
 NTP server              : 91.189.91.157:123 (ntp.ubuntu.com)
@@ -63,14 +65,14 @@ Motherboard             : 440BX Desktop Reference Platform
 BIOS                    : Phoenix Technologies LTD
 BIOS Version            : 6.00
 BIOS Release            : 11.12.2020
-Process Started count   : 262
-Running/All Process     : 2/418
-CPU avg 1/5/15 min      : 0.55 0.73 0.72
+Process Started count   : 264
+Running/All Process     : 1/424
+CPU avg 1/5/15 min      : 0.42 0.56 0.58
 CPU avg usr/sys/wa/idle : 4     6       0       90
-CPU cur usr/sys/wa/idle : 1     8       0       91
-IOps avg in/out         : 27    1006
-IOps current in/out     : 0     536
-Memory use/all          : 1587/3876 MB
+CPU cur usr/sys/wa/idle : 8     14      0       77
+IOps avg in/out         : 27    1011
+IOps current in/out     : 0     800
+Memory use/all          : 1628/3876 MB
 SWAP use/all            : 85/3888 MB
 SWAP Mount              : file /swap.img
 SWAP Running free mem   : 60%
@@ -95,20 +97,26 @@ Net Kernel max backlog  : 1000
 TCP Keepalive Time Live : 7200+(75*9)=7875
 ICMP ignore             : false
 Route ip forward        : false
-Descriptor File use/max : 2400/9223372036854775807
-List Open Files count   : 35617
-All dir and files count : 516568
+Descriptor File use/max : 2560/9223372036854775807
+List Open Files count   : 36526
+All dir and files count : 518436
 Limits count            : 0
 Socket ESTAB count      : 20
 Unique open net ports   : 2121, 3306, 57934
 iptables rule count     : 1
+UFW Status              : inactive
 Unit Startup count      : 109/398
-APT show auto/manual    : 767/59
+APT show auto/manual    : 826 (767/59)
+APT Last Update         : 6 Sep 15:14
+APT List Upgrade count  : 2
 DPKG Packet count       : 837
 SNAP Packet count       : 4
 User count              : 41
 User directories        : Jenkins, lifailon
-Zabbix agent status     : active (running) since Tue 2023-09-05 23:00:01 MSK; 15h ago
+Bash version            : 5.1.16(1)-release (x86_64-pc-linux-gnu)
+Python version          : 3.10.12
+Zabbix Agent status     : active (running) since Tue 2023-09-05 23:00:01 MSK; 17h ago
+Zabbix Agent version    : 6.4.6
 Zabbix config           : /etc/zabbix/zabbix_agentd.conf
 Zabbix server           : 192.168.3.102
 ```
