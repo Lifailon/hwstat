@@ -44,15 +44,15 @@ Tested by Ubuntu Server 20.04.2 and 22.04.2.
 root@devops-01:~# bash hwstat.sh
 
 Hostname                : devops-01
-Uptime                  : 4 days  2:28
+Uptime                  : 4 days  2:40
 Startup                 : 10.804s (kernel) + 40.423s (userspace) = 51.228s
-Systemd version         : 249.11-0ubuntu3.9
-Local Time              : Wed 2023-09-06 14:12:00 MSK
+Local Time              : Wed 2023-09-06 14:24:22 MSK
 Time Zone               : Europe/Moscow (MSK, +0300)
 NTP service             : active
 NTP server              : 91.189.91.157:123 (ntp.ubuntu.com)
-Kernel                  : Linux 5.15.0-82-generic
 OS                      : Ubuntu 22.04.3 LTS
+Kernel                  : Linux 5.15.0-82-generic
+Systemd version         : 249.11-0ubuntu3.9
 Hypervisor              : VMware
 CPU                     : Intel(R) Core(TM) i5-10400 CPU @ 2.90GHz
 Core                    : 1
@@ -64,13 +64,13 @@ BIOS                    : Phoenix Technologies LTD
 BIOS Version            : 6.00
 BIOS Release            : 11.12.2020
 Process Started count   : 262
-Running/All Process     : 2/420
-CPU avg 1/5/15 min      : 0.37 0.68 0.75
+Running/All Process     : 2/418
+CPU avg 1/5/15 min      : 0.55 0.73 0.72
 CPU avg usr/sys/wa/idle : 4     6       0       90
-CPU cur usr/sys/wa/idle : 2     6       0       92
+CPU cur usr/sys/wa/idle : 1     8       0       91
 IOps avg in/out         : 27    1006
-IOps current in/out     : 0     1124
-Memory use/all          : 1586/3876 MB
+IOps current in/out     : 0     536
+Memory use/all          : 1587/3876 MB
 SWAP use/all            : 85/3888 MB
 SWAP Mount              : file /swap.img
 SWAP Running free mem   : 60%
@@ -95,9 +95,9 @@ Net Kernel max backlog  : 1000
 TCP Keepalive Time Live : 7200+(75*9)=7875
 ICMP ignore             : false
 Route ip forward        : false
-Descriptor File use/max : 2368/9223372036854775807
-List Open Files count   : 36337
-All dir and files count : 518612
+Descriptor File use/max : 2400/9223372036854775807
+List Open Files count   : 35617
+All dir and files count : 516568
 Limits count            : 0
 Socket ESTAB count      : 20
 Unique open net ports   : 2121, 3306, 57934
