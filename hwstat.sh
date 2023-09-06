@@ -2,13 +2,13 @@ function hwstat {
 hn=$(uname -a | awk '{print $2}')
 uptime=$(uptime | sed -E "s/^ ..:..:.. up //; s/ [0-9] user.+//; s/,//g")
 startup=$(systemd-analyze | sed -n "1p" | sed "s/Startup finished in //")
-systemd_ver=$(systemd --version | grep -Eo "\(.+\)" | sed -E "s/\(|\)//g")
 time=$(timedatectl | grep Local | sed -E "s/.+time: //")
 tz=$(timedatectl | grep zone | sed -E "s/.+zone: //")
 ntp=$(timedatectl | grep NTP | sed -E "s/.+service: //")
 srv=$(systemctl status systemd-timesyncd | grep "Status": | sed -E "s/^.+server //; "s/.\"//"")
-kernel=$(uname -a | awk '{print $1,$3}')
 os=$(lsb_release -d | sed -E "s/Description:\s+//")
+kernel=$(uname -a | awk '{print $1,$3}')
+systemd_ver=$(systemd --version | grep -Eo "\(.+\)" | sed -E "s/\(|\)//g")
 vm=$(lscpu | grep Hypervisor | awk '{print $3}')
 cpu=$(lscpu | grep "Model name" | sed -E "s/Model name:\s+//")
 core=$(lscpu | grep "^CPU(s)" | awk '{print$2}')
@@ -102,13 +102,13 @@ echo
 echo "Hostname                : $hn"
 echo "Uptime                  : $uptime"
 echo "Startup                 : $startup"
-echo "Systemd version         : $systemd_ver"
 echo "Local Time              : $time"
 echo "Time Zone               : $tz"
 echo "NTP service             : $ntp"
 echo "NTP server              : $srv"
-echo "Kernel                  : $kernel"
 echo "OS                      : $os"
+echo "Kernel                  : $kernel"
+echo "Systemd version         : $systemd_ver"
 echo "Hypervisor              : $vm"
 echo "CPU                     : $cpu"
 echo "Core                    : $core"
