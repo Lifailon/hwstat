@@ -86,18 +86,35 @@ ss=$(ss -tun | wc -l)
 ports=$(ss -tun | sed 1d | awk '{print $5}' | awk -F ":" '{print $2","}' | sort | uniq)
 ports=$(echo $ports | sed -r "s/,$//")
 iptables=$(echo $(( $(iptables -L | wc -l) - 8 )))
+ufw=$(ufw status | awk '{print $2}')
 unit_all=$(systemctl list-unit-files | sed "1d" | wc -l)
 unit_startup=$(systemctl list-unit-files --state=enabled | sed "1d" | wc -l)
+apt_list=$(apt list --installed 2> /dev/null | sed 1d | wc -l)
 showauto=$(apt-mark showauto | wc -l)
 showmanual=$(apt-mark showmanual | wc -l)
+last_update=$(ls -l /var/cache/apt/pkgcache.bin | awk '{print $7,$6,$8}')
+list_update=$(apt list --upgradable 2> /dev/null | wc -l)
 dpkg=$(dpkg -l | wc -l)
 snap=$(snap list | sed 1d | wc -l)
 usr=$(cat /etc/passwd | wc -l)
 home=($(ls /home))
 home=$(echo ${home[@]} | sed "s/ /, /g")
-zabbix_status=$(systemctl status zabbix-agent | grep Active | awk -F": " '{print $2}')
-zabbix_path=$(systemctl status zabbix-agent | grep -P -o "(?<=-c ).*(?=.conf)" | sed "s/$/.conf/")
-zabbix_server=$(cat $zabbix_path | grep -Po "(?<=^Server=).+")
+bash=$(bash --version | sed -n 1p | sed -E "s/.+version //")
+python=$(python3 --version | sed "s/Python //")
+zabbix_service=$(systemctl status zabbix-agent)
+zabbix_status=$(printf "%s\n" "${zabbix_service[@]}" | grep Active | awk -F": " '{print $2}')
+zabbix_test=$(echo $zabbix_status | grep -wo "active")
+if [ ${#zabbix_test} -gt 0 ]
+then
+zabbix_agent=$(printf "%s\n" "${zabbix_service[@]}" | grep -P -o "(?<=ExecStart=).*(?= -c)")
+zabbix_ver=$($zabbix_agent --version | sed -n 1p | grep -Eo [0-9].+)
+zabbix_conf=$(printf "%s\n" "${zabbix_service[@]}" | grep -P -o "(?<=-c ).*(?=.conf)" | sed "s/$/.conf/")
+zabbix_server=$(cat $zabbix_conf | grep -Po "(?<=^Server=).+")
+else
+zabbix_ver=$(/dev/null)
+zabbix_conf=$(/dev/null)
+zabbix_server=$(/dev/null)
+fi
 echo
 echo "Hostname                : $hn"
 echo "Uptime                  : $uptime"
@@ -158,14 +175,20 @@ echo "Limits count            : $limits"
 echo "Socket ESTAB count      : $ss"
 echo "Unique open net ports   : $ports"
 echo "iptables rule count     : $iptables"
+echo "UFW Status              : $ufw"
 echo "Unit Startup count      : $unit_startup/$unit_all"
-echo "APT show auto/manual    : $showauto/$showmanual"
+echo "APT show auto/manual    : $apt_list ($showauto/$showmanual)"
+echo "APT Last Update         : $last_update"
+echo "APT List Upgrade count  : $list_update"
 echo "DPKG Packet count       : $dpkg"
 echo "SNAP Packet count       : $snap"
 echo "User count              : $usr"
 echo "User directories        : $home"
-echo "Zabbix agent status     : $zabbix_status"
-echo "Zabbix config           : $zabbix_path"
+echo "Bash version            : $bash"
+echo "Python version          : $python"
+echo "Zabbix Agent status     : $zabbix_status"
+echo "Zabbix Agent version    : $zabbix_ver"
+echo "Zabbix config           : $zabbix_conf"
 echo "Zabbix server           : $zabbix_server"
 echo
 }
