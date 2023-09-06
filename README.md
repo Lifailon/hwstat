@@ -46,9 +46,9 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 root@devops-01:~# bash hwstat.sh
 
 Hostname                : devops-01
-Uptime                  : 4 days  4:44
+Uptime                  : 4 days  4:52
 Startup                 : 10.804s (kernel) + 40.423s (userspace) = 51.228s
-Local Time              : Wed 2023-09-06 16:28:19 MSK
+Local Time              : Wed 2023-09-06 16:36:14 MSK
 Time Zone               : Europe/Moscow (MSK, +0300)
 NTP service             : active
 NTP server              : 91.189.91.157:123 (ntp.ubuntu.com)
@@ -67,12 +67,12 @@ BIOS Version            : 6.00
 BIOS Release            : 11.12.2020
 Process Started count   : 264
 Running/All Process     : 1/424
-CPU avg 1/5/15 min      : 0.42 0.56 0.58
+CPU avg 1/5/15 min      : 0.51 0.57 0.60
 CPU avg usr/sys/wa/idle : 4     6       0       90
-CPU cur usr/sys/wa/idle : 8     14      0       77
-IOps avg in/out         : 27    1011
-IOps current in/out     : 0     800
-Memory use/all          : 1628/3876 MB
+CPU cur usr/sys/wa/idle : 5     10      0       85
+IOps avg in/out         : 27    1012
+IOps current in/out     : 0     1240
+Memory use/all          : 1638/3876 MB
 SWAP use/all            : 85/3888 MB
 SWAP Mount              : file /swap.img
 SWAP Running free mem   : 60%
@@ -98,11 +98,11 @@ TCP Keepalive Time Live : 7200+(75*9)=7875
 ICMP ignore             : false
 Route ip forward        : false
 Descriptor File use/max : 2560/9223372036854775807
-List Open Files count   : 36526
-All dir and files count : 518436
+List Open Files count   : 36608
+All dir and files count : 518085
 Limits count            : 0
-Socket ESTAB count      : 20
-Unique open net ports   : 2121, 3306, 57934
+Socket ESTAB count      : 22
+Unique open net ports   : 2121, 3306, 57934, 8080
 iptables rule count     : 1
 UFW Status              : inactive
 Unit Startup count      : 109/398
