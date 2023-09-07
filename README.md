@@ -30,8 +30,8 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 - ethtool
 - resolvectl
 - networkctl
-- lsof
-- du
+- lsof **(for full output use root permission)**
+- du **(for full output use root permission)**
 - limits
 - ss
 - iptables **(use root permission)**
