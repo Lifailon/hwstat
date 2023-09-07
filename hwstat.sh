@@ -48,6 +48,10 @@ swap_all=$(free -m | grep Swap | awk '{print $2}')
 swap_use=$(free -m | grep Swap | awk '{print $3}')
 mount=$(swapon | sed '1d' | awk '{print $2,$1}')
 swaprun=$(sysctl vm.swappiness 2> /dev/null | awk -F "= " '{print $2}')
+back_ratio=$(sysctl vm.dirty_background_ratio 2> /dev/null | awk -F "= " '{print $2}')
+ratio=$(sysctl vm.dirty_ratio 2> /dev/null | awk -F "= " '{print $2}')
+expire=$(sysctl vm.dirty_expire_centisecs 2> /dev/null | awk -F "= " '{print $2}')
+writeback=$(sysctl vm.dirty_writeback_centisecs 2> /dev/null | awk -F "= " '{print $2}')
 eth=$(lspci | grep -i ethernet | awk -F": " '{print $NF}' | sed -n 1p)
 video=$(lspci | grep -i vga | awk -F": " '{print $NF}')
 audio=$(lspci | grep -i audio | awk -F": " '{print $NF}')
@@ -120,7 +124,7 @@ zabbix_status=$(printf "%s\n" "${zabbix_service[@]}" | grep Active | awk -F": " 
 zabbix_test=$(echo $zabbix_status | grep -wo "active")
 if [ ${#zabbix_test} -gt 0 ]
 then
-zabbix_agent=$(printf "%s\n" "${zabbix_service[@]}" | grep -P " -c " | sed -E "s/ -c.+//" | awk '{print $NF}')
+zabbix_agent=$(printf "%s\n" "${zabbix_service[@]}" | grep -P " -c " | sed -n 1p | sed -E "s/ -c.+//; s/.+=//" | awk '{print $NF}')
 zabbix_ver=$($zabbix_agent --version | sed -n 1p | grep -Eo [0-9].+)
 zabbix_conf=$(printf "%s\n" "${zabbix_service[@]}" | grep -P -o "(?<=-c ).*(?=.conf)" | sed "s/$/.conf/")
 zabbix_server=$(cat $zabbix_conf | grep -Po "(?<=^Server=).+")
@@ -161,7 +165,9 @@ echo "MEM use/all/cache       : $mem_use/$mem_all/$mem_cache MB"
 echo "MEM cache/buffer/dirty  : $cache/$buf/$dirty KB"
 echo "SWAP use/all            : $swap_use/$swap_all MB"
 echo "SWAP Mount              : $mount"
-echo "SWAP Running free mem   : $swaprun%"
+echo "SWAP Running free mem   : $swaprun %"
+echo "Cache background/ratio  : $back_ratio/$ratio %"
+echo "Cache expire/writeback  : $expire/$writeback hundredths sec"
 echo "Ethernet Adapter        : $eth"
 echo "VGA controller          : $video"
 echo "Audio controller        : $audio"
