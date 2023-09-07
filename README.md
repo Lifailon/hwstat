@@ -47,9 +47,9 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 root@devops-01:~# bash hwstat.sh
 
 Hostname                : devops-01
-Uptime                  : 4 days  7:29
+Uptime                  : 5 days  3:17
 Startup                 : 10.804s (kernel) + 40.423s (userspace) = 51.228s
-Local Time              : Wed 2023-09-06 19:14:35 MSK
+Local Time              : Thu 2023-09-07 15:02:02 MSK
 Time Zone               : Europe/Moscow (MSK, +0300)
 NTP service             : active
 NTP server              : 91.189.91.157:123 (ntp.ubuntu.com)
@@ -66,15 +66,16 @@ Motherboard             : 440BX Desktop Reference Platform
 BIOS                    : Phoenix Technologies LTD
 BIOS Version            : 6.00
 BIOS Release            : 11.12.2020
-Process Started count   : 264
-Running/All Process     : 1/426
-CPU avg 1/5/15 min      : 0.56 0.77 0.80
+Process Started count   : 265
+Running/All Process     : 1/425
+CPU avg 1/5/15 min      : 0.54 0.55 0.62
 CPU avg usr/sys/wa/idle : 4     7       0       89
-CPU cur usr/sys/wa/idle : 11    19      0       70
-IOps avg in/out         : 26    1019
-IOps current in/out     : 0     708
-Memory use/all          : 1607/3876 MB
-SWAP use/all            : 85/3888 MB
+CPU cur usr/sys/wa/idle : 14    12      0       75
+IOps avg in/out         : 25    1018
+IOps current in/out     : 48    1632
+MEM use/all/cache       : 1584/3876/1380 MB
+MEM cache/buffer/dirty  : 510188/380692/1332 KB
+SWAP use/all            : 84/3888 MB
 SWAP Mount              : file /swap.img
 SWAP Running free mem   : 60%
 Ethernet Adapter        : Intel Corporation 82545EM Gigabit Ethernet Controller (Copper) (rev 01)
@@ -100,24 +101,24 @@ TCP Keepalive Time Live : 7200+(75*9)=7875
 ICMP ignore             : false
 Route ip forward        : false
 Descriptor File use/max : 2560/9223372036854775807
-List Open Files count   : 37315
-All dir and files count : 521533
+List Open Files count   : 36591
+All dir and files count : 520344
 Limits count            : 0
 Socket ESTAB count      : 22
 Unique open net ports   : 2121, 3306, 57934, 8080
 iptables rule count     : 1
 UFW Status              : inactive
-Unit Startup count      : 109/398
-APT show auto/manual    : 828 (767/61)
-APT Last Update         : 6 Sep 17:50
-APT List Upgrade count  : 2
-DPKG Packet count       : 839
+Unit Startup count      : 109/399
+APT show auto/manual    : 829 (767/62)
+APT Last Update         : 7 Sep 13:43
+APT List Upgrade count  : 1
+DPKG Packet count       : 840
 SNAP Packet count       : 4
 User count              : 41
 User directories        : Jenkins, lifailon
 Bash version            : 5.1.16(1)-release (x86_64-pc-linux-gnu)
 Python version          : 3.10.12
-Zabbix Agent status     : active (running) since Tue 2023-09-05 23:00:01 MSK; 20h ago
+Zabbix Agent status     : active (running) since Wed 2023-09-06 23:00:01 MSK; 16h ago
 Zabbix Agent version    : 6.4.6
 Zabbix config           : /etc/zabbix/zabbix_agentd.conf
 Zabbix server           : 192.168.3.102
