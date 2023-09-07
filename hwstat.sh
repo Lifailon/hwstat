@@ -39,6 +39,11 @@ bo_avg=$(echo $vms_avg | awk '{print $10}')
 bo_cur=$(echo $vms_cur | awk '{print $10}')
 mem_all=$(free -m | grep Mem | awk '{print $2}')
 mem_use=$(free -m | grep Mem | awk '{print $3}')
+mem_cache=$(free -m | grep Mem | awk '{print $6}')
+cache=$(cat /proc/meminfo | grep -iE "^cache" | awk '{print $2}')
+buf=$(cat /proc/meminfo | grep -iE "^buff" | awk '{print $2}')
+dirty=$(cat /proc/meminfo | grep -iE "Dirty" | awk '{print $2}')
+drop_cache=$(ls -l /proc/sys/vm/drop_caches | awk '{print $7,$6,$8}')
 swap_all=$(free -m | grep Swap | awk '{print $2}')
 swap_use=$(free -m | grep Swap | awk '{print $3}')
 mount=$(swapon | sed '1d' | awk '{print $2,$1}')
@@ -102,7 +107,7 @@ apt_list=$(apt list --installed 2> /dev/null | sed 1d | wc -l)
 showauto=$(apt-mark showauto | wc -l)
 showmanual=$(apt-mark showmanual | wc -l)
 last_update=$(ls -l /var/cache/apt/pkgcache.bin | awk '{print $7,$6,$8}')
-list_update=$(apt list --upgradable 2> /dev/null | wc -l)
+list_update=$(apt list --upgradable 2> /dev/null | sed 1d |  wc -l)
 dpkg=$(dpkg -l | wc -l)
 snap=$(snap list | sed 1d | wc -l)
 usr=$(cat /etc/passwd | wc -l)
@@ -115,7 +120,7 @@ zabbix_status=$(printf "%s\n" "${zabbix_service[@]}" | grep Active | awk -F": " 
 zabbix_test=$(echo $zabbix_status | grep -wo "active")
 if [ ${#zabbix_test} -gt 0 ]
 then
-zabbix_agent=$(printf "%s\n" "${zabbix_service[@]}" | grep -P -o "(?<=ExecStart=).*(?= -c)")
+zabbix_agent=$(printf "%s\n" "${zabbix_service[@]}" | grep -P " -c " | sed -E "s/ -c.+//" | awk '{print $NF}')
 zabbix_ver=$($zabbix_agent --version | sed -n 1p | grep -Eo [0-9].+)
 zabbix_conf=$(printf "%s\n" "${zabbix_service[@]}" | grep -P -o "(?<=-c ).*(?=.conf)" | sed "s/$/.conf/")
 zabbix_server=$(cat $zabbix_conf | grep -Po "(?<=^Server=).+")
@@ -152,7 +157,8 @@ echo -e "CPU avg usr/sys/wa/idle : $us_avg\t$sy_avg\t$wa_avg\t$id_avg"
 echo -e "CPU cur usr/sys/wa/idle : $us_cur\t$sy_cur\t$wa_cur\t$id_cur"
 echo -e "IOps avg in/out         : $bi_avg\t$bo_avg"
 echo -e "IOps current in/out     : $bi_cur\t$bo_cur"
-echo "Memory use/all          : $mem_use/$mem_all MB"
+echo "MEM use/all/cache       : $mem_use/$mem_all/$mem_cache MB"
+echo "MEM cache/buffer/dirty  : $cache/$buf/$dirty KB"
 echo "SWAP use/all            : $swap_use/$swap_all MB"
 echo "SWAP Mount              : $mount"
 echo "SWAP Running free mem   : $swaprun%"
