@@ -21,6 +21,7 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 - vmstat
 - vmstat
 - free
+- meminfo
 - swapon
 - sysctl
 - lspci
