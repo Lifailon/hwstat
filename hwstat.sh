@@ -119,7 +119,30 @@ home=($(ls /home))
 home=$(echo ${home[@]} | sed "s/ /, /g")
 bash=$(bash --version | sed -n 1p | sed -E "s/.+version //")
 python=$(python3 --version | sed "s/Python //")
-zabbix_service=$(systemctl status zabbix-agent)
+ansible=$(ansible --version 2> /dev/null | sed -n 1p | sed "s/ansible //")
+if [ ${#ansible} -eq 0 ]
+then
+ansible="Not installed"
+fi
+docker_version=$(docker --version 2> /dev/null | sed "s/Docker version //")
+if [ ${#docker_version} -ne 0 ]
+then
+docker_compose_version=$(docker-compose --version 2> /dev/null | sed "s/docker-compose version //")
+docker_images=$(docker images | sed 1d | awk '{print $1}')
+docker_images=$(echo ${docker_images[@]} | sed "s/ /, /g")
+docker_images_count=$(echo $docker_images | wc -w)
+docker_ps=$(docker ps | sed 1d | awk '{print $NF}')
+docker_ps=$(echo ${docker_ps[@]} | sed "s/ /, /g")
+docker_ps_count=$(echo $docker_ps | wc -w)
+docker_host_port=$(docker inspect $(docker ps -q) --format='{{.NetworkSettings.Ports}}' | grep -Po "[0-9]+(?=}]])")
+docker_host_port=$(echo ${docker_host_port[@]} | sed "s/ /, /g")
+docker_v=$(echo "$docker_version/$docker_compose_version")
+docker_i=$(echo "$docker_images_count ($docker_images)")
+docker_p=$(echo "$docker_ps_count ($docker_ps)")
+else
+docker_v="Not installed"
+fi
+zabbix_service=$(systemctl status zabbix-agent 2> /dev/null)
 zabbix_status=$(printf "%s\n" "${zabbix_service[@]}" | grep Active | awk -F": " '{print $2}')
 zabbix_test=$(echo $zabbix_status | grep -wo "active")
 if [ ${#zabbix_test} -gt 0 ]
@@ -208,6 +231,11 @@ echo "User count              : $usr"
 echo "User directories        : $home"
 echo "Bash version            : $bash"
 echo "Python version          : $python"
+echo "Ansible version         : $ansible"
+echo "Docker/Compose version  : $docker_v"
+echo "Docker images           : $docker_i"
+echo "Docker running          : $docker_p"
+echo "Docker listen host port : $docker_host_port"
 echo "Zabbix Agent status     : $zabbix_status"
 echo "Zabbix Agent version    : $zabbix_ver"
 echo "Zabbix config           : $zabbix_conf"
