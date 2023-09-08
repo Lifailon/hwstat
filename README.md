@@ -132,3 +132,95 @@ Zabbix Agent version    : 6.4.6
 Zabbix config           : /etc/zabbix/zabbix_agentd.conf
 Zabbix server           : 192.168.3.102
 ```
+
+### Example 2:
+
+Ubuntu 20.04 and not root permission
+
+```bash
+lifailon@netbox-01:~# bash hwstat.sh
+
+Hostname                : netbox-01
+Uptime                  : 9 days  3:05
+Startup                 : 8.057s (kernel) + 15.014s (userspace) = 23.071s
+Local Time              : Fri 2023-09-08 22:05:32 MSK
+Time Zone               : Europe/Moscow (MSK, +0300)
+NTP service             : active
+NTP server              : 185.125.190.56:123 (ntp.ubuntu.com)
+OS                      : Ubuntu 20.04.2 LTS
+Kernel                  : Linux 5.4.0-156-generic
+Systemd version         : 245.4-4ubuntu3.20
+Hypervisor              : VMware
+CPU                     : Intel(R) Core(TM) i5-10400 CPU @ 2.90GHz
+Core                    : 1
+Architecture            : x86_64
+L2                      : 256 KiB
+L3                      : 12 MiB
+Motherboard             :
+BIOS                    :
+BIOS Version            :
+BIOS Release            :
+Process Started count   : 232
+Running/All Process     : 1/264
+CPU avg 1/5/15 min      : 0.25 0.09 0.02
+CPU avg usr/sys/wa/idle : 0     1       0       99
+CPU cur usr/sys/wa/idle : 1     5       0       94
+IOps avg in/out         : 73    35
+IOps current in/out     : 0     340
+MEM use/all/cache       : 481/1940/1354 MB
+MEM cache/buffer/dirty  : 654512/372196/128 KB
+SWAP use/all            : 13/2047 MB
+SWAP Mount              : file /swap.img
+SWAP Running free mem   : 60 %
+Cache background/ratio  : 10/20 %
+Cache expire/writeback  : 3000/500 hundredths sec
+Ethernet Adapter        : Intel Corporation 82545EM Gigabit Ethernet Controller (Copper) (rev 01)
+VGA controller          : VMware SVGA II Adapter
+Audio controller        : Ensoniq ES1371/ES1373 / Creative Labs CT2518 (rev 02)
+SCSI controller         : Broadcom / LSI 53c1030 PCI-X Fusion-MPT Dual Ultra320 SCSI (rev 01)
+SATA controller         : VMware SATA AHCI controller
+All Disk and Volume     : sda, sda1, sda2, sda3
+Disk size               : sda (50G)
+Disk Running Model      : sda VMware_Virtual_S 50G, sr0 VMware_Virtual_SATA_CDRW_Drive 93.2M, sr1 VMware_Virtual_SATA_CDRW_Drive 1.1G
+Mount Filesystem free   : udev (926M/926M), /dev/sda2 (598M/974M)
+LVM Volume Group        :
+LVM Physical Volume     :
+LVM Logical Volume      :
+Network Interfaces      : ens33
+Network Driver/Speed    : ens33 (e1000/1000Mb/s)
+Current DNS Server      : 8.8.8.8
+DNS Server List         : 8.8.8.8, 1.1.1.1
+TCP max syn backlog     : 128
+TCP max connect backlog : 4096
+Net Kernel max backlog  : 1000
+TCP Keepalive Time Live : 7200+(75*9)=7875
+ICMP ignore             : false
+Route ip forward        : false
+Descriptor File use/max : 1376/9223372036854775807
+List Open Files count   : 1198
+All dir and files count : 371599
+Limits count            : 0
+Socket ESTAB count      : 5
+Unique open net ports   : 2121, 8086
+iptables rule count     :
+UFW Status              :
+Unit Startup count      : 99/343
+APT show auto/manual    : 606 (575/31)
+APT Last Update         : 8 Sep 16:48
+APT List Upgrade count  : 93
+DPKG Packet count       : 617
+SNAP Packet count       : 5
+User count              : 37
+User directories        : lifailon
+Bash version            : 5.0.17(1)-release (x86_64-pc-linux-gnu)
+Python version          : 3.8.10
+Ansible version         : Not installed
+Docker/Compose version  : Not installed
+Docker images           :
+Docker running          :
+Docker listen host port :
+Zabbix Agent status     : active (running) since Tue 2023-09-05 17:28:43 MSK; 3 days ago
+Zabbix Agent version    : 6.4.5
+Zabbix config           : /etc/zabbix/zabbix_agentd.conf
+Zabbix server           : 192.168.3.102
+```
