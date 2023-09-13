@@ -53,7 +53,7 @@ root@devops-01:~# bash hwstat.sh
 Hostname                  : devops-01
 Uptime                    : 4 days 13:51 (2023-09-09 01:46:33)
 Startup                   : 10.804s (kernel) + 40.423s (userspace) = 51.228s
-GRUB boot param           : BOOT_IMAGE=/vmlinuz-5.15.0-82-generic root=/dev/mapper/ubuntu--vg-ubuntu--lv ro recovery nomodeset dis_ucode_ldr
+GRUB boot param           : BOOT_IMAGE=/vmlinuz-5.15.0-82-generic root=/dev/mapper/ubuntu--vg-ubuntu--lv
 Local Time                : Wed 2023-09-13 15:38:18 MSK
 Time Zone                 : Europe/Moscow (MSK, +0300)
 NTP service               : active
@@ -151,7 +151,7 @@ Bash version              : 5.1.16
 Python version            : 3.10.12
 Ansible version           : 2.10.8
 Docker/Compose version    : 24.0.5/2.21.0
-Docker Volumes/Images     : 4/7 (postgres, grafana/grafana-enterprise, louislam/uptime-kuma, portainer/agent)
+Docker Volumes/Images     : 4/7 (postgres, grafana-enterprise, louislam/uptime-kuma, portainer/agent)
 Docker Running/All        : 4/9 (portainer_agent.9e0c7p0787yp7x3ctol26n2xw, grafana, uptime-kuma, pgsql)
 Docker LISTEN host ports  : 3000, 3001, 5433
 Zabbix Agent status       : active (running) since Wed 2023-09-13 09:00:04 MSK; 6h ago
