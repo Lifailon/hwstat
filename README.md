@@ -151,8 +151,8 @@ Bash version              : 5.1.16
 Python version            : 3.10.12
 Ansible version           : 2.10.8
 Docker/Compose version    : 24.0.5/2.21.0
-Docker Volumes/Images     : 4/7 (postgres, grafana-enterprise, louislam/uptime-kuma, portainer/agent)
-Docker Running/All        : 4/9 (portainer_agent.9e0c7p0787yp7x3ctol26n2xw, grafana, uptime-kuma, pgsql)
+Docker Volumes/Images     : 4/5 (phpmyadmin, postgres, grafana, louislam/uptime-kuma, portainer/agent)
+Docker Running/All        : 4/9 (portainer_agent, grafana, uptime-kuma, pgsql)
 Docker LISTEN host ports  : 3000, 3001, 5433
 Zabbix Agent status       : active (running) since Wed 2023-09-13 09:00:04 MSK; 6h ago
 Zabbix Agent version      : 6.4.6
