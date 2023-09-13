@@ -60,7 +60,7 @@ NTP service               : active
 NTP server                : 185.125.190.56:123 (ntp.ubuntu.com)
 Syslog service            : active (running) since Wed 2023-09-13 14:58:02 MSK; 40min ago
 Syslog local server       : udp:514
-Syslog remote server      : 192.168.3.104:514
+Syslog remote server      : 192.168.3.101:514 192.168.3.99:514
 Syslog today/all error    : 154/154
 Journal today/all error   : 57/65
 OS                        : Ubuntu 22.04.3 LTS
