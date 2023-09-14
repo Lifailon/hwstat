@@ -5,7 +5,7 @@ uptime=$(uptime | sed -E "s/^ ..:..:.. up[ ]+//; s/ [0-9] user.+//; s/,//g")
 uptime=$(echo "$uptime ($(uptime -s))" | sed "s/  / /")
 startup=$(systemd-analyze | sed -n "1p" | sed "s/Startup finished in //")
 time=$(timedatectl | grep Local | sed -E "s/.+time: //")
-grub_boot_param=$(cat /proc/cmdline)
+#grub_boot_param=$(cat /proc/cmdline)
 tz=$(timedatectl | grep zone | sed -E "s/.+zone: //")
 ntp=$(timedatectl | grep NTP | sed -E "s/.+service: //")
 ntp_server=$(systemctl status systemd-timesyncd | grep "Status": | sed -E "s/^.+server //; "s/.\"//"")
@@ -13,7 +13,8 @@ syslog_status=$(systemctl status rsyslog 2> /dev/null | grep Active | awk -F ": 
 syslog_local_server=$(cat /etc/rsyslog.conf | grep "^input" | awk -F "=" '{print $2,$3}' | tr -d "im" | sed -r 's/\"//g; s/\)//; s/ port /:/')
 syslog_local_server=$(echo ${syslog_local_server[@]})
 syslog_path=$(cat /etc/rsyslog.conf | grep "\$IncludeConfig" | awk '{print $NF}')
-syslog_remote_server=$(cat $syslog_path | grep -Po "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\:[0-9]+")
+syslog_remote_server=($(cat $syslog_path | grep -Po "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\:[0-9]+"))
+syslog_remote_server=$(echo ${syslog_remote_server[@]})
 date=$(date "+%b %e")
 syslog_error_today=$(cat /var/log/syslog | grep "$date\s" | grep -Ei "error:" | wc -l)
 syslog_error_all=$(cat /var/log/syslog | grep -Ei "error:" | wc -l)
@@ -29,9 +30,17 @@ arch=$(lscpu | grep "Architecture" | sed -E "s/Architecture:\s+//")
 l2=$(lscpu | grep L2 | awk '{print $3,$4}')
 l3=$(lscpu | grep L3 | awk '{print $3,$4}')
 mb=$(dmidecode -t baseboard 2> /dev/null | grep Product | awk -F ": " '{print $2}')
+if [ ${#mb} -ne 0 ]
+then
 bios=$(dmidecode -t bios 2> /dev/null | grep Vendor | sed -E "s/.+Vendor: //")
 ver=$(dmidecode -t bios 2> /dev/null | grep Version | sed -E "s/.+Version: //")
 rel=$(dmidecode -t bios 2> /dev/null | grep Release | sed -E "s/.+Release Date: //" | sed "s/\//./g")
+else
+mb=$(echo "Permission denied")
+bios=$(echo "Permission denied")
+ver=$(echo "Permission denied")
+rel=$(echo "Permission denied")
+fi
 ps=$(ps -A | sed 1d | wc -l)
 run=$(cat /proc/loadavg | awk '{print $4}')
 avg=$(cat /proc/loadavg | awk '{print $1,$2,$3}')
@@ -72,19 +81,50 @@ scsi=$(lspci | grep -i scsi | awk -F ": " '{print $NF}')
 sata=$(lspci | grep -i sata | awk -F ": " '{print $NF}')
 sd=$(ls -l /dev | grep sd | awk '{print $NF}')
 sd=$(echo $sd | sed -E "s/\s/, /g")
-lsblk=$(lsblk | grep -w "sd." | awk '{print $1" ("$4"),"}')
+lsblk=$(lsblk | grep -w "^sd." | awk '{print $1" ("$4"),"}')
 lsblk=$(echo $lsblk | sed -r "s/,$//")
 diskmodel=$(lsblk -o NAME,MODEL,SIZE,STATE --nodeps | grep -Ew "running" | awk '{print $0","}' | sed -E "s/ running//")
 diskmodel=$(echo $diskmodel | sed -r "s/,$//")
-df=$(df -h | sed 1d | grep -vE "mapper|vg|lv|tmpfs" | awk '{print $1" ("$4"/"$2"),"}')
+df=$(df -h | sed 1d | grep -vE "tmpfs|loop|docker" | awk '{print $1" ("$4"/"$2"),"}')
 df=$(echo $df | sed -r "s/,$//")
+if [ $(vgs 2> /dev/null | wc -l) -ne 0 ]
+then
 vgs=$(vgs 2> /dev/null | sed "1d; s/<//" | awk '{print $1" pdisk:"$2" lgroup:"$3" ("$7"/"$6"),"}')
 vgs=$(echo $vgs | sed -r "s/,$//")
 pvs=$(pvs 2> /dev/null | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$6"/"$5"),"}')
 pvs=$(echo $pvs | sed -r "s/,$//")
 lvs=$(lvs 2> /dev/null | sed "1d; s/<//" | awk '{print $1" -> "$2" ("$4"),"}')
 lvs=$(echo $lvs | sed -r "s/,$//")
-int=($(ls /sys/class/net | sed "s/lo//"))
+else
+vgs=$(echo "Permission denied")
+pvs=$(echo "Permission denied")
+lvs=$(echo "Permission denied")
+fi
+md_name=$(cat /proc/mdstat | sed -n 2p | awk '{print $1}')
+if [ $md_name != "unused" ]
+then
+mdadm=$(mdadm -D /dev/$md_name 2> /dev/null)
+md_info=$md_name
+mdadm_check=$(mdadm -D /dev/$md_name 2> /dev/null | wc -l)
+else
+md_info=$(echo "No arrays")
+mdadm_check="1"
+fi
+if [ $mdadm_check -gt "1" ]
+then
+md_level=$(printf "%s\n" "${mdadm[@]}" | grep -Ei "level :" | awk -F ": " '{print $2}')
+md_status=$(printf "%s\n" "${mdadm[@]}" | grep -Ei "state :" | awk -F ": " '{print $2}')
+md_info=$(echo "$md_name $md_level/$md_status")
+md_active=$(printf "%s\n" "${mdadm[@]}" | grep "Active Devices" | awk -F ": " '{print $2}')
+md_work=$(printf "%s\n" "${mdadm[@]}" | grep "Working Devices" | awk -F ": " '{print $2}')
+md_fail=$(printf "%s\n" "${mdadm[@]}" | grep "Failed Devices" | awk -F ": " '{print $2}')
+md_spare=$(printf "%s\n" "${mdadm[@]}" | grep "Spare Devices" | awk -F ": " '{print $2}')
+md_state=$(echo "$md_active/$md_work/$md_fail/$md_spare")
+elif [ $mdadm_check -le "1" ] && [ $md_name != "unused" ]
+then
+md_state=$(echo "Permission denied")
+fi
+int=($(ls /sys/class/net | sed "s/lo//" | grep -Evi "veth|br-"))
 interface=$(echo ${int[@]} | sed "s/ /, /g")
 net_driver=()
 for i in ${int[@]}
@@ -123,7 +163,7 @@ tcp_max_orphans=$(sysctl net.ipv4.tcp_max_orphans | awk -F "= " '{print $2}')
 tcp_orphan_retries=$(sysctl net.ipv4.tcp_orphan_retries | awk -F "= " '{print $2}')
 tcp_fin_timeout=$(sysctl net.ipv4.tcp_fin_timeout | awk -F "= " '{print $2}')
 tcp_no_metrics_save=$(sysctl net.ipv4.tcp_no_metrics_save | awk -F "= " '{print $2}')
-tcp_no_metrics_save=$(if (( $(echo "$tcp_no_metrics_save == 1" | bc) )); then echo "true"; else echo "false"; fi)
+tcp_no_metrics_save=$(if (( $(echo "$tcp_no_metrics_save == 0" | bc) )); then echo "true"; else echo "false"; fi) # conversely
 tcp_mem=$(sysctl net.ipv4.tcp_mem | awk '{print $3"/"$4"/"$5}')
 rmem_min=$(sysctl net.ipv4.tcp_rmem | awk '{print $3}')
 wmem_min=$(sysctl net.ipv4.tcp_wmem | awk '{print $3}')
@@ -148,19 +188,26 @@ ss=$(ss -tun | wc -l)
 ports=$(ss -tun | sed 1d | awk '{print $5}' | awk -F ":" '{print $NF","}' | sort | uniq)
 ports=$(echo $ports | sed -r "s/,$//")
 ufw_status=$(ufw status 2> /dev/null | sed -n 1p | awk '{print $2}')
-if [ $ufw_status == "active" ]
+if [ ${#ufw_status} -eq 0 ]
+then
+ufw_status=$(echo "Permission denied")
+elif [ $ufw_status == "active" ]
 then
 ufw_allow=$(ufw status | grep -i allow | wc -l)
 ufw_deny=$(ufw status | grep -i deny | wc -l)
+ufw_state=$(echo $ufw_allow/$ufw_deny)
 fi
 fwd_status=$(firewall-cmd --state 2> /dev/null)
-if [ ${#fwd_status} -ne 0 ] && [ $fwd_status == "running" ]
+if [ ${#fwd_status} -eq 0 ]
+then
+fwd_status=$(echo "Permission denied")
+elif [ $fwd_status == "running" ]
 then
 fwd_ports=$(firewall-cmd --list-port | wc -w)
 fwd_service=$(firewall-cmd --list-service | wc -w)
 fwd_rules=$(echo $fwd_ports/$fwd_service)
 fi
-iptables=$(iptables -L | grep -E "tcp|udp" | wc -l)
+iptables=$(iptables -L 2> /dev/null | grep -E "tcp|udp" | wc -l)
 units=$(systemctl list-unit-files)
 #unit_startup=$(systemctl list-unit-files --state=enabled | grep -Po "[0-9]+(?= unit files listed)") # slow
 unit_startup=$(printf "%s\n" "${units[@]}" | grep -E "enabled\s.+" | wc -l)
@@ -179,9 +226,15 @@ home=$(echo ${home[@]} | sed "s/ /, /g")
 bash=$(bash --version | sed -n 1p | sed -E "s/.+version //; s/\(.+//")
 python=$(python3 --version | sed "s/Python //")
 ansible=$(ansible --version 2> /dev/null | sed -n 1p | sed "s/ansible //")
-if [ ${#ansible} -eq 0 ]; then ansible="Not installed"; fi
+if [ ${#ansible} -eq 0 ]; then ansible="No installed"; fi
 docker_version=$(docker --version 2> /dev/null | sed -r "s/Docker version //; s/,.+//")
 if [ ${#docker_version} -ne 0 ]
+then
+docker_root_check=$(docker volume ls 2> /dev/null | wc -l)
+else
+docker_v="No installed"
+fi
+if [ $docker_root_check -ne 0 ]
 then
 docker_compose_version=$(docker-compose --version 2> /dev/null | sed -r "s/.+ version v//")
 docker_volume=$(docker volume ls | sed 1d | wc -l)
@@ -192,6 +245,9 @@ docker_ps=$(docker ps | sed 1d | awk '{print $NF}')
 docker_ps=$(echo ${docker_ps[@]} | sed "s/ /, /g")
 docker_ps_count=$(echo $docker_ps | wc -w)
 docker_ps_all=$(docker ps -a | sed 1d | wc -l)
+docker_v=$(echo "$docker_version/$docker_compose_version")
+docker_i=$(echo "$docker_volume/$docker_images_count") # ($docker_images)
+docker_p=$(echo "$docker_ps_count/$docker_ps_all") # ($docker_ps)
 #docker_host_port=$(docker inspect $(docker ps -q) --format='{{.NetworkSettings.Ports}}' | grep -Po "[0-9]+(?=}])")
 docker_host_port=$(
 for ps in $(docker ps -q)
@@ -200,11 +256,11 @@ docker port $ps | sed -n 2p | awk -F ":" '{print $NF}'
 done
 )
 docker_host_port=$(echo ${docker_host_port[@]} | sed "s/ /, /g")
-docker_v=$(echo "$docker_version/$docker_compose_version")
-docker_i=$(echo "$docker_volume/$docker_images_count ($docker_images)")
-docker_p=$(echo "$docker_ps_count/$docker_ps_all ($docker_ps)")
 else
-docker_v="Not installed"
+docker_host_port=$(echo "Permission denied")
+docker_v=$(echo "Permission denied")
+docker_i=$(echo "Permission denied")
+docker_p=$(echo "Permission denied")
 fi
 zabbix_service=$(systemctl status zabbix-agent 2> /dev/null)
 zabbix_status=$(printf "%s\n" "${zabbix_service[@]}" | grep Active | awk -F ": " '{print $2}')
@@ -224,7 +280,7 @@ echo
 echo "Hostname                  : $hn"
 echo "Uptime                    : $uptime"
 echo "Startup                   : $startup"
-echo "GRUB boot param           : $grub_boot_param"
+#echo "GRUB boot parameters     : $grub_boot_param"
 echo "Local Time                : $time"
 echo "Time Zone                 : $tz"
 echo "NTP service               : $ntp"
@@ -273,6 +329,8 @@ echo "Mount Filesystem free     : $df"
 echo "LVM Volume Group          : $vgs"
 echo "LVM Physical Volume       : $pvs"
 echo "LVM Logical Volume        : $lvs"
+echo "MD RAID Level/Status      : $md_info"
+echo "MD Active/Work/Fail/Spare : $md_state"
 echo "Network Interfaces        : $interface"
 echo "Network Driver/Speed      : $net_driver"
 echo "Current DNS Server        : $dns"
@@ -290,7 +348,7 @@ echo "TCP Keepalive Time Live   : $keep_print=$keep_sum sec"
 echo "TCP orphan max socket     : $tcp_max_orphans"
 echo "TCP orphan retries count  : $tcp_orphan_retries"
 echo "TCP FIN timeout socket    : $tcp_fin_timeout sec"
-echo "TCP no metrics save       : $tcp_no_metrics_save"
+echo "TCP metrics save          : $tcp_no_metrics_save"
 echo "TCP mem min/load/max page : $tcp_mem"
 echo "Socket in/out buffer min  : $rmem_min/$wmem_min byte"
 echo "Socket in/out default     : $rmem_default/$wmem_default byte"
@@ -306,7 +364,7 @@ echo "Limits count              : $limits"
 echo "Socket ESTAB count        : $ss"
 echo "Socket LISTEN unique port : $ports"
 echo "UFW Status                : $ufw_status"
-echo "UFW Rule allow/deny count : $ufw_allow/$ufw_deny"
+echo "UFW Rule allow/deny count : $ufw_state"
 echo "FWD Status                : $fwd_status"
 echo "FWD Rule ports/services   : $fwd_rules"
 echo "Iptables rule count       : $iptables"
