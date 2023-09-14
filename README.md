@@ -98,10 +98,10 @@ SATA controller           : VMware SATA AHCI controller
 All Disk and Volume       : sda, sda1, sda2, sda3, sdb, sdb1
 Disk size                 : sda (50G), sdb (10G)
 Disk Running Model        : sda VMware Virtual S 50G, sdb VMware Virtual S 10G
-Mount Filesystem free     : /dev/mapper/u--vg-u--lv (31G/57G), /dev/sda2 (1.6G/2.0G), //192.168.3.100/Backup (336G/1.9T)
-LVM Volume Group          : u-vg pdisk:2 lgroup:2 (976.00m/57.99g)
-LVM Physical Volume       : /dev/sda3 -> u-vg (0/48.00g), [unknown] -> u-vg (976.00m/10.00g)
-LVM Logical Volume        : snap-1 -> u-vg (1.00g), u-lv -> u-vg (56.04g)
+Mount Filesystem free     : /dev/mapper/ubuntu--vg-ubuntu--lv (31G/57G), /dev/sda2 (1.6G/2.0G), //192.168.3.100/Backup (336G/1.9T)
+LVM Volume Group          : ubuntu-vg pdisk:2 lgroup:2 (976.00m/57.99g)
+LVM Physical Volume       : /dev/sda3 -> ubuntu-vg (0/48.00g), [unknown] -> ubuntu-vg (976.00m/10.00g)
+LVM Logical Volume        : snap-1 -> ubuntu-vg (1.00g), ubuntu-lv -> ubuntu-vg (56.04g)
 MD RAID Level/Status      : No arrays
 MD Active/Work/Fail/Spare :
 Network Interfaces        : docker0, docker_gwbridge, ens33
@@ -170,17 +170,17 @@ Use Ubuntu 20.04 and not root permission
 lifailon@pi-hole-01:~$ bash hwstat.sh
 
 Hostname                  : pi-hole-01
-Uptime                    : 3:09 (2023-09-14 10:23:51)
+Uptime                    : 4:05 (2023-09-14 10:23:51)
 Startup                   : 8.577s (kernel) + 1min 50.999s (userspace) = 1min 59.576s
-Local Time                : Чт 2023-09-14 13:33:44 MSK
+Local Time                : Чт 2023-09-14 14:29:34 MSK
 Time Zone                 : Europe/Moscow (MSK, +0300)
 NTP service               : active
 NTP server                : 185.125.190.56:123 (ntp.ubuntu.com)
-Syslog service            : active (running) since Thu 2023-09-14 10:25:34 MSK; 3h 8min ago
+Syslog service            : active (running) since Thu 2023-09-14 10:25:34 MSK; 4h 4min ago
 Syslog local server       :
 Syslog remote server      : 192.168.3.99:514
-Syslog today/all error    : 0/84
-Journal today/all error   : 65/1409
+Syslog today/all error    : 0/88
+Journal today/all error   : 71/1415
 OS                        : Ubuntu 20.04.6 LTS
 Kernel                    : Linux 5.4.0-162-generic
 Systemd version           : 245.4-4ubuntu3.22
@@ -194,15 +194,15 @@ Motherboard               : Permission denied
 BIOS                      : Permission denied
 BIOS Version              : Permission denied
 BIOS Release              : Permission denied
-Process Started count     : 309
-Running/All Process       : 1/614
-CPU avg 1/5/15 min        : 0.04 0.08 0.07
-CPU avg usr/sys/wa/idle   : 1   2       0       97
-CPU cur usr/sys/wa/idle   : 1   2       0       97
-IOps avg in/out           : 143 58
-IOps current in/out       : 0   0
-MEM use/all/cache         : 920/1940/881 MB
-MEM cache/buffer/dirty    : 738036/72632/528 KB
+Process Started count     : 306
+Running/All Process       : 1/609
+CPU avg 1/5/15 min        : 0.00 0.19 0.31
+CPU avg usr/sys/wa/idle   : 1   2       0       96
+CPU cur usr/sys/wa/idle   : 1   5       0       94
+IOps avg in/out           : 115 58
+IOps current in/out       : 0   340
+MEM use/all/cache         : 931/1940/901 MB
+MEM cache/buffer/dirty    : 746868/82764/232 KB
 SWAP use/all              : 0/0 MB
 SWAP Mount                :
 SWAP Running free mem     : 60 %
@@ -214,9 +214,9 @@ Audio controller          : Ensoniq ES1371/ES1373 / Creative Labs CT2518 (rev 02
 SCSI controller           : Broadcom / LSI 53c1030 PCI-X Fusion-MPT Dual Ultra320 SCSI (rev 01)
 SATA controller           : VMware SATA AHCI controller
 All Disk and Volume       : sda, sda1, sda2, sda3, sdb
-Disk size                 : sda (50G), sdb (10G), └─md0 (10G)
+Disk size                 : sda (50G), sdb (10G)
 Disk Running Model        : sda VMware_Virtual_S 50G, sdb VMware_Virtual_S 10G
-Mount Filesystem free     : /dev/mapper/u--vg-u--lv (31G/48G), /dev/sda2 (698M/974M), /dev/md0 (9,3G/9,8G)
+Mount Filesystem free     : udev (926M/926M), /dev/mapper/ubuntu--vg-ubuntu--lv (31G/48G), /dev/sda2 (698M/974M), /dev/md0 (9,3G/9,8G)
 LVM Volume Group          : Permission denied
 LVM Physical Volume       : Permission denied
 LVM Logical Volume        : Permission denied
@@ -248,8 +248,8 @@ Socket TIME-WAIT max      : 8192
 Socket local port range   : 32768-60999
 Net Kernel max backlog    : 1000
 Net reverse path filter   : 2
-Descriptor Files use/max  : 5056/9223372036854775807
-List Open Files count     : 7292
+Descriptor Files use/max  : 4928/9223372036854775807
+List Open Files count     : 6889
 Limits count              : 0
 Socket ESTAB count        : 3
 Socket LISTEN unique port : 2121
@@ -274,7 +274,7 @@ Docker/Compose version    : Permission denied
 Docker Volumes/Images     : Permission denied
 Docker Running/All        : Permission denied
 Docker LISTEN host ports  : Permission denied
-Zabbix Agent status       : active (running) since Thu 2023-09-14 10:25:35 MSK; 3h 8min ago
+Zabbix Agent status       : active (running) since Thu 2023-09-14 10:25:35 MSK; 4h 4min ago
 Zabbix Agent version      : 6.4.6
 Zabbix config             : /etc/zabbix/zabbix_agentd.conf
 Zabbix server             : 192.168.3.102,192.168.3.99
