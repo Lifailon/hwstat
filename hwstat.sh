@@ -14,9 +14,6 @@ ntp_status=$(printf "%s\n" "${ntp_systemd[@]}" | grep -Eo "Active:\s[a-z]+\s" | 
 if [ $ntp_status == "active" ]
 then
 ntp_server=$(printf "%s\n" "${ntp_systemd[@]}" | grep "Status": | sed -E "s/^.+server //; "s/.\"//"")
-elif [ $ntp_status == "inactive" ]
-then
-ntp_server="systemd-timesyncd.service inactive"
 fi
 ntpd=$(systemctl status ntp 2> /dev/null | grep -Eo "Active:\s[a-z]+\s" | sed "s/Active: //")
 if [ ${#ntpd} -eq 0 ]
@@ -24,8 +21,10 @@ then
 ntpd_status="No installed"
 else
 ntpd_status=$ntpd
-ntpd_server=$(cat /etc/ntp.conf | grep -E "^server|^pool" | awk '{print $2}')
-ntpd_server=$(echo ${ntpd_server[@]} | sed "s/ /, /g")
+ntpd_server=$(cat /etc/ntp.conf | grep -E "^server" | awk '{print $2}' | wc -l)
+ntpd_pool=$(cat /etc/ntp.conf | grep -E "^pool" | awk '{print $2}' | wc -l)
+ntpd_sp=$(echo "$ntp_server/$ntpd_pool")
+ntpd_current_server=$(ntpq -p | grep -Eo "^\*[a-z.]+\s+[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | sed "s/  / /; s/*//")
 fi
 syslog_status=$(systemctl status rsyslog 2> /dev/null | grep Active: | awk -F ": " '{print $2}')
 #syslog_local_server=$(cat /etc/rsyslog.conf | grep "^input" | awk -F "=" '{print $2,$3}' | tr -d "im" | sed -r 's/\"//g; s/\)//; s/ port /:/')
@@ -387,9 +386,11 @@ echo "Startup                    : $startup"
 echo "Local Time                 : $time"
 echo "Time Zone                  : $tz"
 echo "NTP service/synchronized   : $ntp_sync/$ntp_service"
-echo "NTP server sync systemd    : $ntp_server"
-echo "NTPd status                : $ntpd_status"
-echo "TNPd server/pool for sync  : $ntpd_server"
+echo "NTP systemd service status : $ntp_status"
+echo "NTP systemd server sync    : $ntp_server"
+echo "NTPD status                : $ntpd_status"
+echo "NTPD conf server/pool      : $ntpd_sp"
+echo "NTPD current server sync   : $ntpd_current_server"
 echo "Syslog service             : $syslog_status"
 #echo "Syslog local server       : $syslog_local_server"
 echo "Syslog remote server       : $syslog_remote_server"
