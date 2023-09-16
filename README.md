@@ -60,18 +60,20 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 root@devops-01:~# bash hwstat.sh
 
 Hostname                   : devops-01
-Uptime                     : 7 days 22:03 (2023-09-09 01:48:45)
+Uptime                     : 7 days 22:37 (2023-09-09 01:48:45)
 Startup                    : 10.804s (kernel) + 40.423s (userspace) = 51.228s
-Local Time                 : Sat 2023-09-16 23:52:22 MSK
+Local Time                 : Sun 2023-09-17 00:26:13 MSK
 Time Zone                  : Europe/Moscow (MSK, +0300)
-NTP service/synchronized   : yes/inactive
-NTP server sync systemd    : systemd-timesyncd.service inactive
-NTPd status                : No installed
-TNPd server/pool for sync  :
+NTP service/synchronized   : yes/active
+NTP systemd service status : active
+NTP systemd server sync    : 185.125.190.57:123 (ntp.ubuntu.com)
+NTPD status                : No installed
+NTPD conf server/pool      :
+NTPD current server sync   :
 Syslog service             : active (running) since Wed 2023-09-13 14:58:02 MSK; 3 days ago
 Syslog remote server       : 192.168.3.99:514
-Syslog today/all error     : 36/242
-Journal today/all error    : 61/61
+Syslog today/all error     : 0/0
+Journal today/all error    : 21/82
 OS                         : Ubuntu 22.04.3 LTS
 Kernel                     : Linux 5.15.0-82-generic
 Systemd version            : 249.11-0ubuntu3.9
@@ -85,16 +87,16 @@ Motherboard                : 440BX Desktop Reference Platform
 BIOS                       : Phoenix Technologies LTD
 BIOS Version               : 6.00
 BIOS Release               : 11.12.2020
-Process Started count      : 266
-Running/All Process        : 7/555
-CPU avg 1/5/15 min         : 2.93 1.83 1.57
+Process Started count      : 273
+Running/All Process        : 7/559
+CPU avg 1/5/15 min         : 4.44 3.17 2.41
 CPU avg usr/sys/wa/idle    : 15 13      0       72
-CPU cur usr/sys/wa/idle    : 26 33      0       41
-IOps avg in/out            : 20 1104
-IOps current in/out        : 0  1300
-MEM use/all/cache          : 1486/3876/2281 MB
-MEM cache/buffer/dirty     : 1747248/292476/1152 KB
-SWAP use/all               : 394/3888 MB
+CPU cur usr/sys/wa/idle    : 11 13      0       76
+IOps avg in/out            : 20 1105
+IOps current in/out        : 0  1312
+MEM use/all/cache          : 1526/3876/2215 MB
+MEM cache/buffer/dirty     : 1639292/293368/864 KB
+SWAP use/all               : 399/3888 MB
 SWAP Mount                 : file /swap.img
 SWAP Running free mem      : 60 %
 Cache background/ratio     : 10/20 %
@@ -144,19 +146,19 @@ Socket local port range    : 32768-60999
 Net Kernel max backlog     : 1000
 Net reverse path filter    : 2
 Async IO request curr/max  : 2305/65536
-Descriptor Files use/max   : 3040/9223372036854775807
+Descriptor Files use/max   : 3168/9223372036854775807
 Descriptor max for process : 1048576
-List Open Files/All count  : 32577/40241
+List Open Files/All count  : 32652/40359
 Limits count               : 0
-Socket ESTAB count         : 21
-Socket LISTEN unique port  : 2121, 3306, 44662, 59532, 8080
+Socket ESTAB count         : 22
+Socket LISTEN unique port  : 2121, 3306, 44662, 59532
 UFW Status                 : active
 UFW Rule allow/deny count  : 22/4
 FWD Status                 : running
 FWD Rule ports/services    : 10/6
 Iptables rule count        : 42
 Hosts allow/deny services  : 0/0
-Unit Startup/All count     : 111/407
+Unit Startup/All count     : 112/409
 Cron tasks curr/all users  : 1/0
 APT show auto/manual       : 842 (778/64)
 APT Last Update            : 16 Sep 13:54
@@ -176,7 +178,7 @@ Docker/Compose version     : 24.0.5/2.21.0
 Docker Volumes/Images      : 4/7
 Docker Running/All         : 4/11
 Docker LISTEN host ports   : 3000, 3001, 5433
-Zabbix Agent status        : active (running) since Sat 2023-09-16 23:00:02 MSK; 53min ago
+Zabbix Agent status        : active (running) since Sat 2023-09-16 23:00:02 MSK; 1h 26min ago
 Zabbix Agent version       : 6.4.6
 Zabbix config              : /etc/zabbix/zabbix_agentd.conf
 Zabbix server              : 192.168.3.102
@@ -190,18 +192,20 @@ Use Ubuntu 20.04 and not root permission
 lifailon@pi-hole-01:~$ bash hwstat.sh
 
 Hostname                   : pi-hole-01
-Uptime                     : 1 day 10:53 (2023-09-15 12:57:28)
+Uptime                     : 1 day 11:25 (2023-09-15 12:57:28)
 Startup                    : 10.681s (kernel) + 24.407s (userspace) = 35.088s
-Local Time                 : Сб 2023-09-16 23:51:07 MSK
+Local Time                 : Вс 2023-09-17 00:22:32 MSK
 Time Zone                  : Europe/Moscow (MSK, +0300)
 NTP service/synchronized   : yes/n/a
-NTP server sync systemd    : systemd-timesyncd.service inactive
-NTPd status                : active
-TNPd server/pool for sync  : 0.ubuntu.pool.ntp.org, 0.ru.pool.ntp.org
-Syslog service             : active (running) since Fri 2023-09-15 12:57:46 MSK; 1 day 10h ago
+NTP systemd service status : inactive
+NTP systemd server sync    :
+NTPD status                : active
+NTPD conf server/pool      : 2/0
+NTPD current server sync   : ns.aksinet.net 192.36.143.151
+Syslog service             : active (running) since Fri 2023-09-15 12:57:46 MSK; 1 day 11h ago
 Syslog remote server       : 192.168.3.99:514 192.168.3.105:514
-Syslog today/all error     : 0/33
-Journal today/all error    : 58/1532
+Syslog today/all error     : 0/0
+Journal today/all error    : 2/1532
 OS                         : Ubuntu 20.04.6 LTS
 Kernel                     : Linux 5.4.0-162-generic
 Systemd version            : 245.4-4ubuntu3.22
@@ -211,19 +215,19 @@ Core                       : 1
 Architecture               : x86_64
 L2                         : 256 KiB
 L3                         : 12 MiB
-Motherboard                : 440BX Desktop Reference Platform
-BIOS                       : Phoenix Technologies LTD
-BIOS Version               : 6.00
-BIOS Release               : 11.12.2020
-Process Started count      : 308
-Running/All Process        : 1/614
-CPU avg 1/5/15 min         : 0.10 0.08 0.09
+Motherboard                : Permission denied
+BIOS                       : Permission denied
+BIOS Version               : Permission denied
+BIOS Release               : Permission denied
+Process Started count      : 306
+Running/All Process        : 1/608
+CPU avg 1/5/15 min         : 0.32 0.18 0.11
 CPU avg usr/sys/wa/idle    : 1  1       0       98
-CPU cur usr/sys/wa/idle    : 1  3       0       96
-IOps avg in/out            : 39 58
-IOps current in/out        : 0  124
-MEM use/all/cache          : 1101/1940/763 MB
-MEM cache/buffer/dirty     : 603344/64756/700 KB
+CPU cur usr/sys/wa/idle    : 1  1       0       98
+IOps avg in/out            : 39 59
+IOps current in/out        : 0  0
+MEM use/all/cache          : 1038/1940/763 MB
+MEM cache/buffer/dirty     : 601632/79848/924 KB
 SWAP use/all               : 0/0 MB
 SWAP Mount                 :
 SWAP Running free mem      : 60 %
@@ -239,11 +243,11 @@ Disk size                  : sda (50G), sdb (10G)
 Disk Running Model         : sda VMware_Virtual_S 50G, sdb VMware_Virtual_S 10G
 Mount Filesystem free/all  : /dev/mapper/ubuntu--vg-ubuntu--lv (31G/48G), /dev/sda2 (698M/974M), /dev/md127 (9,3G/9,8G)
 Mount fstab count          : 3
-LVM Volume Group           : ubuntu-vg pdisk:1 lgroup:1 (0/49,00g)
-LVM Physical Volume        : /dev/sda3 -> ubuntu-vg (0/49,00g)
-LVM Logical Volume         : ubuntu-lv -> ubuntu-vg (49,00g)
-MD RAID Level/Status       : md127 raid1/clean, degraded
-MD Active/Work/Fail/Spare  : 1/1/0/0
+LVM Volume Group           : Permission denied
+LVM Physical Volume        : Permission denied
+LVM Logical Volume         : Permission denied
+MD RAID Level/Status       : md127
+MD Active/Work/Fail/Spare  : Permission denied
 Network Interfaces         : docker0, ens33
 Network Driver/Speed       : docker0 (bridge/), ens33 (e1000/1000Mb/s)
 DNS Resolv configutation   : 8.8.8.8, 1.1.1.1, 127.0.0.53
@@ -274,17 +278,17 @@ Socket local port range    : 32768-60999
 Net Kernel max backlog     : 1000
 Net reverse path filter    : 2
 Async IO request curr/max  : 0/65536
-Descriptor Files use/max   : 5184/9223372036854775807
+Descriptor Files use/max   : 4928/9223372036854775807
 Descriptor max for process : 1048576
-List Open Files/All count  : 17937/25989
+List Open Files/All count  : 4136/6855
 Limits count               : 0
 Socket ESTAB count         : 3
 Socket LISTEN unique port  : 2121
-UFW Status                 : inactive
+UFW Status                 : Permission denied or no installed
 UFW Rule allow/deny count  :
 FWD Status                 : Permission denied or no installed
 FWD Rule ports/services    :
-Iptables rule count        : 5
+Iptables rule count        : 0
 Hosts allow/deny services  : 0/0
 Unit Startup/All count     : 381/400
 Cron tasks curr/all users  : 0/0
@@ -294,20 +298,20 @@ APT List Upgrade count     : 0
 DPKG Packet count          : 1256
 SNAP Packet count          : 4
 User/Group count           : 53/81
-User using password        : lifailon
+User using password        : Permission denied
 User directories           : lifailon, tester, testuser
-Sudo all conf user count   : 5
+Sudo all conf user count   : Permission denied
 Login pass min/max days    : 0/99999
 ssh port/login pass/root   : 2121/yes
 yes/prohibit-password
 Bash version               : 5.0.17
 Python version             : 3.8.10
 Ansible version            : No installed
-Docker/Compose version     : 24.0.5/docker-compose version 1.26.0, build d4451659
-Docker Volumes/Images      : 4/6
-Docker Running/All         : 4/4
-Docker LISTEN host ports   : 9001, 9000, 8080, 3001
-Zabbix Agent status        : active (running) since Fri 2023-09-15 12:57:47 MSK; 1 day 10h ago
+Docker/Compose version     : Permission denied
+Docker Volumes/Images      : Permission denied
+Docker Running/All         : Permission denied
+Docker LISTEN host ports   : Permission denied
+Zabbix Agent status        : active (running) since Fri 2023-09-15 12:57:47 MSK; 1 day 11h ago
 Zabbix Agent version       : 6.4.6
 Zabbix config              : /etc/zabbix/zabbix_agentd.conf
 Zabbix server              : 192.168.3.102,192.168.3.99
