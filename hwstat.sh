@@ -23,7 +23,7 @@ else
 ntpd_status=$ntpd
 ntpd_server=$(cat /etc/ntp.conf | grep -E "^server" | awk '{print $2}' | wc -l)
 ntpd_pool=$(cat /etc/ntp.conf | grep -E "^pool" | awk '{print $2}' | wc -l)
-ntpd_sp=$(echo "$ntp_server/$ntpd_pool")
+ntpd_sp=$(echo "$ntpd_server/$ntpd_pool")
 ntpd_current_server=$(ntpq -p | grep -Eo "^\*[a-z.]+\s+[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | sed "s/  / /; s/*//")
 fi
 syslog_status=$(systemctl status rsyslog 2> /dev/null | grep Active: | awk -F ": " '{print $2}')
@@ -285,7 +285,7 @@ users=($(cat /etc/passwd | awk -F ":" '{print $1}'))
 cron_all=0
 for u in ${users[@]}
 do
-cron_all=$(( $count + $(crontab -l -u $u 2> /dev/null | sed "/^#\|^$/d" | wc -l) ))
+cron_all=$(( $cron_all + $(crontab -l -u $u 2> /dev/null | sed "/^#\|^$/d" | wc -l) ))
 done
 apt_list=$(apt list --installed 2> /dev/null | sed 1d | wc -l)
 showauto=$(apt-mark showauto | wc -l)
@@ -310,17 +310,33 @@ if [ ${#sudo_path} -eq 0 ]
 then
 sudo_count="Permission denied"
 else
+sudo_conf_count=$(cat /etc/sudoers 2> /dev/null | grep "NOPASSWD" | wc -l)
+sudo_files_count=$(cat $sudo_path/* 2> /dev/null | grep "NOPASSWD" | wc -l)
+sudo_nopasswd=$(( $sudo_conf_count + $sudo_files_count ))
 sudo_conf_count=$(cat /etc/sudoers 2> /dev/null | grep -Ev "^#|^$|^Defaults" | wc -l)
 sudo_files_count=$(cat $sudo_path/* 2> /dev/null | grep -Ev "^#|^$|^Defaults" | wc -l)
-sudo_count=$(( $sudo_conf_count + $sudo_files_count ))
+sudo_all_count=$(( $sudo_conf_count + $sudo_files_count ))
+sudo_count=$(echo "$sudo_nopasswd/$sudo_all_count")
 fi
 login_min_days=$(cat /etc/login.defs | awk '/^PASS_MIN_DAYS/ {print $2}')
 login_max_days=$(cat /etc/login.defs | awk '/^PASS_MAX_DAYS/ {print $2}')
 #login_min_len=$(cat /etc/login.defs | awk '/PASS_MIN_LEN/ {print $2}')
 #login_max_len=$(cat /etc/login.defs | awk '/PASS_MAX_LEN/ {print $2}')
-ssh_port=$(cat /etc/ssh/sshd_config | awk '/Port / {print $2}')
-ssh_pass=$(cat /etc/ssh/sshd_config | awk '/PasswordAuthentication / {print $2}')
-ssh_root=$(cat /etc/ssh/sshd_config | grep -E "PermitRootLogin " -m 1 | awk '{print $2}')
+ssh_port=$(cat /etc/ssh/sshd_config | awk '/^Port / {print $2}')
+if [ ${#ssh_port} -eq 0 ]
+then
+ssh_port=$(cat /etc/ssh/sshd_config | awk '/#Port / {print $2}')
+fi
+ssh_pass=$(cat /etc/ssh/sshd_config | awk '/^PasswordAuthentication / {print $2}')
+if [ ${#ssh_pass} -eq 0 ]
+then
+ssh_pass=$(cat /etc/ssh/sshd_config | awk '/#PasswordAuthentication / {print $2}')
+fi
+ssh_root=$(cat /etc/ssh/sshd_config | grep "^PermitRootLogin " -m 1 | awk '{print $2}')
+if [ ${#ssh_root} -eq 0 ]
+then
+ssh_root=$(cat /etc/ssh/sshd_config | grep "^#PermitRootLogin " -m 1 | awk '{print $2}')
+fi
 bash=$(bash --version | sed -n 1p | sed -E "s/.+version //; s/\(.+//")
 python=$(python3 --version 2> /dev/null || python2 --version 2> /dev/null)
 python=$(echo $python | sed "s/Python //")
@@ -490,10 +506,10 @@ echo "DPKG Packet count          : $dpkg"
 echo "SNAP Packet count          : $snap"
 echo "User/Group count           : $user/$group"
 echo "User using password        : $user_passwd "
-echo "User directories           : $home"
-echo "Sudo all conf user count   : $sudo_count"
+echo "User directory             : $home"
+echo "Sudo nopasswd/all count    : $sudo_count"
 echo "Login pass min/max days    : $login_min_days/$login_max_days"
-echo "ssh port/login pass/root   : $ssh_port/$ssh_pass/$ssh_root"
+    echo "ssh port/login pass/root   : $ssh_port/$ssh_pass/$ssh_root"
 echo "Bash version               : $bash"
 echo "Python version             : $python"
 echo "Ansible version            : $ansible"
