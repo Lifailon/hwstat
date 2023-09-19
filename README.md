@@ -25,7 +25,6 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 - free
 - meminfo
 - swapon
-- sysctl (vm, net, fs)
 - lspci
 - lsblk
 - df
@@ -36,9 +35,11 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 - systemd-resolve/resolvectl
 - networkctl
 - hosts
-- lsof **(for full output use root permission)**
-- limits **(for full output use root permission)**
 - ss
+- lsof **(for full output use root permission)**
+- **sysctl** (vm, net, fs)
+- **limits users (to output for all users use root permission)**
+- **limits processes** (format: count unique processes and Soft/Hard metrics for them)
 - ufw **(use root permission)**
 - firewalld **(use root permission)**
 - iptables **(use root permission)**
