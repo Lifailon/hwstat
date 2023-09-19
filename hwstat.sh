@@ -1,4 +1,58 @@
 #!/bin/bash
+# 0.0.7: add limits for user and processes
+function limits-user {
+users=$(cat /etc/passwd | grep -v "^root"  | awk -F ":" '{print $1}')
+for u in ${users[@]}
+do
+s=$(su $u -s /bin/bash -c "ulimit  -S$1")
+h=$(su $u -s /bin/bash -c "ulimit  -H$1")
+echo "$s/$h"
+#echo -e "$s/$h\t$u"
+done
+}
+
+function limits-curr {
+s=$(ulimit -S$1)
+h=$(ulimit -H$1)
+echo "$s/$h"
+}
+
+function limits-proc {
+ps -Ao pid,comm | sed 1d | while read line
+do
+pid=$(echo $line | awk '{print $1}')
+name=$(echo $line | awk '{print $2}')
+if [ ${#1} -eq 0 ]
+then
+break
+fi
+if [ $1 == "-n" ]
+then
+limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max open files" | awk '{print $4"/"$5}') #$6
+elif [ $1 == "-f" ]
+then
+limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max file size" | awk '{print $4"/"$5}') #$6
+elif [ $1 == "-s" ]
+then
+limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max stack size" | awk '{print $4"/"$5}') #$6
+elif [ $1 == "-q" ]
+then
+limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max msgqueue size" | awk '{print $4"/"$5}') #$6
+elif [ $1 == "-u" ]
+then
+limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max processes" | awk '{print $3"/"$4}') #$5
+elif [ $1 == "-t" ]
+then
+limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max cpu time" | awk '{print $4"/"$5}') #$6
+elif [ $1 == "-m" ]
+then
+limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max realtime timeout" | awk '{print $4"/"$5}') # $6
+fi
+echo -e $limits
+#echo -e "$limits\t$name"
+done
+}
+
 function hwstat {
 hn=$(uname -a | awk '{print $2}')
 uptime=$(uptime | sed -E "s/^ ..:..:.. up[ ]+//; s/ [0-9] user.+//; s/,//g")
@@ -7,6 +61,7 @@ startup=$(systemd-analyze | sed -n "1p" | sed "s/Startup finished in //")
 time=$(timedatectl | grep Local | sed -E "s/.+time: //")
 #grub_boot_param=$(cat /proc/cmdline)
 tz=$(timedatectl | grep zone | sed -E "s/.+zone: //")
+### NTP
 ntp_sync=$(timedatectl | grep synchronized | sed -E "s/.+synchronized: //; s/\s//g")
 ntp_service=$(timedatectl | grep NTP | sed -E "s/.+service: //")
 ntp_systemd=$(systemctl status systemd-timesyncd)
@@ -24,8 +79,9 @@ ntpd_status=$ntpd
 ntpd_server=$(cat /etc/ntp.conf | grep -E "^server" | awk '{print $2}' | wc -l)
 ntpd_pool=$(cat /etc/ntp.conf | grep -E "^pool" | awk '{print $2}' | wc -l)
 ntpd_sp=$(echo "$ntpd_server/$ntpd_pool")
-ntpd_current_server=$(ntpq -p | grep -Eo "^\*[a-z.]+\s+[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+" | sed "s/  / /; s/*//")
+ntpd_current_server=$(ntpq -p | grep -E "^\*" | awk '{print $1}' | sed "s/*//")
 fi
+### SYSLOG
 syslog_status=$(systemctl status rsyslog 2> /dev/null | grep Active: | awk -F ": " '{print $2}')
 #syslog_local_server=$(cat /etc/rsyslog.conf | grep "^input" | awk -F "=" '{print $2,$3}' | tr -d "im" | sed -r 's/\"//g; s/\)//; s/ port /:/')
 #syslog_local_server=$(echo ${syslog_local_server[@]})
@@ -37,15 +93,18 @@ syslog_error_today=$(cat /var/log/syslog | grep "$date\s" | grep -Ei "error:" | 
 syslog_error_all=$(cat /var/log/syslog | grep -Ei "error:" | wc -l)
 journalctl_all=$(journalctl -p 3 | wc -l)
 journalctl_today=$(journalctl -p 3 --since today | wc -l)
+### Hardware
 os=$(lsb_release -d | sed -E "s/Description:\s+//")
 kernel=$(uname -a | awk '{print $1,$3}')
 systemd_ver=$(systemd --version | grep -Eo "\(.+\)" | sed -E "s/\(|\)//g")
+### lscpu
 vm=$(lscpu | grep Hypervisor | awk '{print $3}')
 cpu=$(lscpu | grep "Model name" | sed -E "s/Model name:\s+//")
 core=$(lscpu | grep "^CPU(s)" | awk '{print$2}')
 arch=$(lscpu | grep "Architecture" | sed -E "s/Architecture:\s+//")
 l2=$(lscpu | grep L2 | awk '{print $3,$4}')
 l3=$(lscpu | grep L3 | awk '{print $3,$4}')
+### dmidecode
 mb=$(dmidecode -t baseboard 2> /dev/null | grep Product | awk -F ": " '{print $2}')
 if [ ${#mb} -ne 0 ]
 then
@@ -58,9 +117,11 @@ bios="Permission denied"
 ver="Permission denied"
 rel="Permission denied"
 fi
+### Processes
 ps=$(ps -A | sed 1d | wc -l)
 run=$(cat /proc/loadavg | awk '{print $4}')
 avg=$(cat /proc/loadavg | awk '{print $1,$2,$3}')
+### vmstat
 vmstat=$(vmstat 1 2)
 vms_avg=$(printf "%s\n" "${vmstat[@]}" | sed -n 3p)
 vms_cur=$(printf "%s\n" "${vmstat[@]}" | sed -n 4p)
@@ -76,9 +137,10 @@ bi_avg=$(echo $vms_avg | awk '{print $9}')
 bi_cur=$(echo $vms_cur | awk '{print $9}')
 bo_avg=$(echo $vms_avg | awk '{print $10}')
 bo_cur=$(echo $vms_cur | awk '{print $10}')
-mem_all=$(free -m | grep Mem | awk '{print $2}')
+### MEM
 mem_use=$(free -m | grep Mem | awk '{print $3}')
 mem_cache=$(free -m | grep Mem | awk '{print $6}')
+mem_all=$(free -m | grep Mem | awk '{print $2}')
 cache=$(cat /proc/meminfo | grep -iE "^cache" | awk '{print $2}')
 buf=$(cat /proc/meminfo | grep -iE "^buff" | awk '{print $2}')
 dirty=$(cat /proc/meminfo | grep -iE "Dirty" | awk '{print $2}')
@@ -91,20 +153,31 @@ back_ratio=$(cat /proc/sys/vm/dirty_background_ratio)
 ratio=$(cat /proc/sys/vm/dirty_ratio)
 expire=$(cat /proc/sys/vm/dirty_expire_centisecs)
 writeback=$(cat /proc/sys/vm/dirty_writeback_centisecs)
+### lspci
 eth=$(lspci | grep -i ethernet | awk -F ": " '{print $NF}' | sed -n 1p)
 video=$(lspci | grep -i vga | awk -F ": " '{print $NF}')
 audio=$(lspci | grep -i audio | awk -F ": " '{print $NF}')
 scsi=$(lspci | grep -i scsi | awk -F ": " '{print $NF}')
 sata=$(lspci | grep -i sata | awk -F ": " '{print $NF}')
+### DISK
+sd_count=$(ls -l /dev | grep sd | wc -l)
 sd=$(ls -l /dev | grep sd | awk '{print $NF}')
 sd=$(echo $sd | sed -E "s/\s/, /g")
-lsblk=$(lsblk | grep -w "^sd." | awk '{print $1" ("$4"),"}')
+lsblk=$(lsblk | grep -w "^sd." | awk '{print $1,$4","}')
 lsblk=$(echo $lsblk | sed -r "s/,$//")
+sum=0
+lsblk_sum=$(lsblk -bo NAME,SIZE | grep -w "^sd." | awk '{print $2}')
+for s in ${lsblk_sum[@]}
+do
+((sum+=$s))
+done
+lsblk_sum_gb=$(($sum/1024/1024/1024))
 diskmodel=$(lsblk -o NAME,MODEL,SIZE,STATE --nodeps | grep -Ew "running" | awk '{print $0","}' | sed -E "s/ running//")
 diskmodel=$(echo $diskmodel | sed -r "s/,$//")
 df=$(df -h | sed 1d | grep -vE "udev|tmpfs|loop|docker" | awk '{print $1" ("$4"/"$2"),"}')
 df=$(echo $df | sed -r "s/,$//")
 fstab=$(cat /etc/fstab | sed "/^#\|^$/d" | wc -l)
+### LVM
 if [ $(vgs 2> /dev/null | wc -l) -ne 0 ]
 then
 vgs=$(vgs 2> /dev/null | sed "1d; s/<//" | awk '{print $1" pdisk:"$2" lgroup:"$3" ("$7"/"$6"),"}')
@@ -118,6 +191,7 @@ vgs="Permission denied"
 pvs="Permission denied"
 lvs="Permission denied"
 fi
+### MD
 md_name=$(cat /proc/mdstat | sed -n 2p | awk '{print $1}')
 if [ $md_name != "unused" ]
 then
@@ -142,6 +216,7 @@ elif [ $mdadm_check -le "1" ] && [ $md_name != "unused" ]
 then
 md_state="Permission denied"
 fi
+### Network
 int=($(ls /sys/class/net | sed "s/lo//" | grep -Evi "veth|br-"))
 interface=$(echo ${int[@]} | sed "s/ /, /g")
 net_driver=()
@@ -152,9 +227,12 @@ speed=$(ethtool $i 2> /dev/null | grep -i speed | sed -E "s/.+: //")
 net_driver+=($(echo "$i ($driver/$speed),"))
 done
 net_driver=$(echo ${net_driver[@]} | sed "s/,$//")
+### DNS
 resolv_conf=$(cat /etc/resolv.conf | grep -E "^nameserver" | sed "s/nameserver //")
 resolv_conf=$(echo $resolv_conf | sed "s/ /, /g")
 resolv_link=$(ls -la /etc/resolv.conf | awk '{print $NF}' | sed "s/^..//")
+dnslist=$(networkctl status | grep -A 5 "DNS:" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")
+dnslist=$(echo $dnslist | sed "s/ /, /g")
 resolve=$(systemd-resolve --status 2> /dev/null | grep "Current DNS" | sed -n 1p | awk -F ": " '{print $2}')
 if [ ${#resolve} -eq 0 ]
 then
@@ -162,9 +240,12 @@ dns_current=$(resolvectl status | grep "Current DNS" | awk -F ": " '{print $2}')
 else
 dns_current=$resolve
 fi
-dnslist=$(networkctl status | grep -A 5 "DNS:" | grep -oE "[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+")
-dnslist=$(echo $dnslist | sed "s/ /, /g")
 hosts_file=$(cat /etc/hosts | grep -E [0-9]+\.[0-9]+\.[0-9]+\.[0-9] | wc -l)
+### Sockets
+ss=$(ss -tun | wc -l)
+ports=$(ss -tun | sed 1d | awk '{print $5}' | awk -F ":" '{print $NF","}' | sort | uniq)
+ports=$(echo $ports | sed -r "s/,$//")
+### Sysctl
 #ipv6=$(sysctl net.ipv6.conf.all.disable_ipv6 | awk -F "= " '{print $2}')
 ipv6=$(cat /proc/sys/net/ipv6/conf/all/disable_ipv6)
 ipv6=$(if (( $(echo "$ipv6 == 1" | bc) )); then echo "true"; else echo "false"; fi)
@@ -239,8 +320,16 @@ rp_filter=$(cat /proc/sys/net/ipv4/conf/all/rp_filter)
 #aio_max=$(sysctl fs.aio-max-nr | awk -F "= " '{print $2}')
 aio=$(cat /proc/sys/fs/aio-nr)
 aio_max=$(cat /proc/sys/fs/aio-max-nr)
+#queues_max=$(sysctl fs.mqueue.queues_max | awk -F "= " '{print $2}')
+#msg_max=$(sysctl fs.mqueue.msg_max | awk -F "= " '{print $2}')
+#msgsize_max=$(sysctl fs.mqueue.msgsize_max | awk -F "= " '{print $2}')
+queues_max=$(cat /proc/sys/fs/mqueue/queues_max)
+msg_max=$(cat /proc/sys/fs/mqueue/msg_max)
+msgsize_max=$(cat /proc/sys/fs/mqueue/msgsize_max)
 #use=$(sysctl fs.file-nr | awk '{print $3}')
+#no_use=$(sysctl fs.file-nr | awk '{print $4}')
 use=$(cat /proc/sys/fs/file-nr | awk '{print $1}')
+no_use=$(cat /proc/sys/fs/file-nr | awk '{print $2}')
 #descriptor=$(sysctl fs.file-max 2> /dev/null | awk -F "= " '{print $2}')
 descriptor=$(cat /proc/sys/fs/file-max)
 #proc_file=$(sysctl fs.nr_open | awk -F "= " '{print $2}')
@@ -248,11 +337,35 @@ proc_file=$(cat /proc/sys/fs/nr_open)
 lsof=$(lsof 2> /dev/null | sed 1d)
 lsof_reg=$(printf "%s\n" "${lsof[@]}" | grep REG | wc -l )
 lsof_all=$(printf "%s\n" "${lsof[@]}" | wc -l)
-#du=$(du -a / 2> /dev/null | wc -l) # slow
+### Limits
 limits=$(cat /etc/security/limits.conf | grep -Ev "^$|^#" | wc -l)
-ss=$(ss -tun | wc -l)
-ports=$(ss -tun | sed 1d | awk '{print $5}' | awk -F ":" '{print $NF","}' | sort | uniq)
-ports=$(echo $ports | sed -r "s/,$//")
+id=$(id -G | grep -w "0")
+if [ ${#id} -eq 1 ]
+then
+limits_open_file=$(echo $(limits-user n | sort | uniq -c))
+limits_file_size=$(echo $(limits-user f | sort | uniq -c))
+limits_stack_size=$(echo $(limits-user s | sort | uniq -c))
+limits_msg_queues=$(echo $(limits-user q | sort | uniq -c))
+limits_user_proc=$(echo $(limits-user u | sort | uniq -c))
+limits_cpu_time=$(echo $(limits-user t | sort | uniq -c))
+limits_mem_size=$(echo $(limits-user m | sort | uniq -c))
+else
+limits_open_file=$(limits-curr n)
+limits_file_size=$(limits-curr f)
+limits_stack_size=$(limits-curr s)
+limits_msg_queues=$(limits-curr q)
+limits_user_proc=$(limits-curr u)
+limits_cpu_time=$(limits-curr t)
+limits_mem_size=$(limits-curr m)
+fi
+limits_proc_open_file=$(echo $(limits-proc -n | sed "/^#\|^$/d" | sort | uniq -c))
+limits_proc_file_size=$(echo $(limits-proc -f | sed "/^#\|^$/d" | sort | uniq -c))
+limits_proc_stack_size=$(echo $(limits-proc -s | sed "/^#\|^$/d" | sort | uniq -c))
+limits_proc_msg_queues=$(echo $(limits-proc -q | sed "/^#\|^$/d" | sort | uniq -c))
+limits_proc_user_proc=$(echo $(limits-proc -u | sed "/^#\|^$/d" | sort | uniq -c))
+limits_proc_cpu_time=$(echo $(limits-proc -t | sed "/^#\|^$/d" | sort | uniq -c))
+limits_proc_mem_size=$(echo $(limits-proc -m | sed "/^#\|^$/d" | sort | uniq -c))
+### Firewall
 ufw_status=$(ufw status 2> /dev/null | sed -n 1p | awk '{print $2}')
 if [ ${#ufw_status} -eq 0 ]
 then
@@ -276,17 +389,19 @@ fi
 iptables=$(iptables -L 2> /dev/null | grep -E "tcp|udp" | wc -l)
 hosts_allow=$(cat /etc/hosts.allow | grep -Pv "^$|^#" | wc -l)
 hosts_deny=$(cat /etc/hosts.deny | grep -Pv "^$|^#" | wc -l)
+### UNIT
 units=$(systemctl list-unit-files)
 #unit_startup=$(systemctl list-unit-files --state=enabled | grep -Po "[0-9]+(?= unit files listed)") # slow
 unit_startup=$(printf "%s\n" "${units[@]}" | grep -E "enabled\s.+" | wc -l)
 unit_all=$(printf "%s\n" "${units[@]}" | grep -Po "[0-9]+(?= unit files listed)")
 cron_current=$(crontab -l 2> /dev/null | sed "/^#\|^$/d" | wc -l)
-users=($(cat /etc/passwd | awk -F ":" '{print $1}'))
+users_passwd=($(cat /etc/passwd | awk -F ":" '{print $1}'))
 cron_all=0
-for u in ${users[@]}
+for u in ${users_passwd[@]}
 do
 cron_all=$(( $cron_all + $(crontab -l -u $u 2> /dev/null | sed "/^#\|^$/d" | wc -l) ))
 done
+### Packet
 apt_list=$(apt list --installed 2> /dev/null | sed 1d | wc -l)
 showauto=$(apt-mark showauto | wc -l)
 showmanual=$(apt-mark showmanual | wc -l)
@@ -294,6 +409,7 @@ last_update=$(ls -l /var/cache/apt/pkgcache.bin | awk '{print $7,$6,$8}')
 list_update=$(apt list --upgradable 2> /dev/null | sed 1d |  wc -l)
 dpkg=$(dpkg -l | wc -l)
 snap=$(snap list | sed 1d | wc -l)
+### USERS
 user=$(cat /etc/passwd | wc -l)
 group=$(cat /etc/group | wc -l )
 user_passwd=($(cat /etc/shadow 2> /dev/null | grep -Ev "^.+\:\*:|^.+\:\!+" | awk -F: '{print $1}'))
@@ -327,6 +443,11 @@ if [ ${#ssh_port} -eq 0 ]
 then
 ssh_port=$(cat /etc/ssh/sshd_config | awk '/#Port / {print $2}')
 fi
+ssh_x11=$(cat /etc/ssh/sshd_config | grep "^X11Forwarding " -m 1 | awk '{print $2}')
+if [ ${#ssh_x11} -eq 0 ]
+then
+ssh_x11=$(cat /etc/ssh/sshd_config | grep "^#X11Forwarding " -m 1 | awk '{print $2}')
+fi
 ssh_pass=$(cat /etc/ssh/sshd_config | awk '/^PasswordAuthentication / {print $2}')
 if [ ${#ssh_pass} -eq 0 ]
 then
@@ -337,6 +458,7 @@ if [ ${#ssh_root} -eq 0 ]
 then
 ssh_root=$(cat /etc/ssh/sshd_config | grep "^#PermitRootLogin " -m 1 | awk '{print $2}')
 fi
+### Versions
 bash=$(bash --version | sed -n 1p | sed -E "s/.+version //; s/\(.+//")
 python=$(python3 --version 2> /dev/null || python2 --version 2> /dev/null)
 python=$(echo $python | sed "s/Python //")
@@ -345,6 +467,7 @@ if [ ${#ansible} -eq 0 ]
 then
 ansible="No installed"
 fi
+### Docker
 docker_version=$(docker --version 2> /dev/null | sed -r "s/Docker version //; s/,.+//")
 if [ ${#docker_version} -ne 0 ]
 then
@@ -368,9 +491,9 @@ docker_i=$(echo "$docker_volume/$docker_images_count") # ($docker_images)
 docker_p=$(echo "$docker_ps_count/$docker_ps_all") # ($docker_ps)
 #docker_host_port=$(docker inspect $(docker ps -q) --format='{{.NetworkSettings.Ports}}' | grep -Po "[0-9]+(?=}])")
 docker_host_port=$(
-for ps in $(docker ps -q)
+for dps in $(docker ps -q)
 do
-docker port $ps | sed -n 2p | awk -F ":" '{print $NF}'
+docker port $dps | sed -n 2p | awk -F ":" '{print $NF}'
 done
 )
 docker_host_port=$(echo ${docker_host_port[@]} | sed "s/ /, /g")
@@ -380,6 +503,7 @@ docker_v="Permission denied"
 docker_i="Permission denied"
 docker_p="Permission denied"
 fi
+### Zabbix
 zabbix_service=$(systemctl status zabbix-agent 2> /dev/null)
 zabbix_status=$(printf "%s\n" "${zabbix_service[@]}" | grep Active | awk -F ": " '{print $2}')
 zabbix_test=$(echo $zabbix_status | grep -wo "active")
@@ -395,132 +519,149 @@ zabbix_conf=$(/dev/null 2> /dev/null)
 zabbix_server=$(/dev/null 2> /dev/null)
 fi
 echo
-echo "Hostname                   : $hn"
-echo "Uptime                     : $uptime"
-echo "Startup                    : $startup"
-#echo "GRUB boot parameters      : $grub_boot_param"
-echo "Local Time                 : $time"
-echo "Time Zone                  : $tz"
-echo "NTP service/synchronized   : $ntp_sync/$ntp_service"
-echo "NTP systemd service status : $ntp_status"
-echo "NTP systemd server sync    : $ntp_server"
-echo "NTPD status                : $ntpd_status"
-echo "NTPD conf server/pool      : $ntpd_sp"
-echo "NTPD current server sync   : $ntpd_current_server"
-echo "Syslog service             : $syslog_status"
-#echo "Syslog local server       : $syslog_local_server"
-echo "Syslog remote server       : $syslog_remote_server"
-echo "Syslog today/all error     : $syslog_error_today/$syslog_error_all"
-echo "Journal today/all error    : $journalctl_today/$journalctl_all"
-echo "OS                         : $os"
-echo "Kernel                     : $kernel"
-echo "Systemd version            : $systemd_ver"
-echo "Hypervisor                 : $vm"
-echo "CPU                        : $cpu"
-echo "Core                       : $core"
-echo "Architecture               : $arch"
-echo "L2                         : $l2"
-echo "L3                         : $l3"
-echo "Motherboard                : $mb"
-echo "BIOS                       : $bios"
-echo "BIOS Version               : $ver"
-echo "BIOS Release               : $rel"
-echo "Process Started count      : $ps"
-echo "Running/All Process        : $run"
-echo "CPU avg 1/5/15 min         : $avg"
-echo -e "CPU avg usr/sys/wa/idle    : $us_avg\t$sy_avg\t$wa_avg\t$id_avg"
-echo -e "CPU cur usr/sys/wa/idle    : $us_cur\t$sy_cur\t$wa_cur\t$id_cur"
-echo -e "IOps avg in/out            : $bi_avg\t$bo_avg"
-echo -e "IOps current in/out        : $bi_cur\t$bo_cur"
-echo "MEM use/all/cache          : $mem_use/$mem_all/$mem_cache MB"
-echo "MEM cache/buffer/dirty     : $cache/$buf/$dirty KB"
-echo "SWAP use/all               : $swap_use/$swap_all MB"
-echo "SWAP Mount                 : $mount"
-echo "SWAP Running free mem      : $swaprun %"
-echo "Cache background/ratio     : $back_ratio/$ratio %"
-echo "Cache expire/writeback     : $expire/$writeback hundredths sec"
-echo "Ethernet Adapter           : $eth"
-echo "VGA controller             : $video"
-echo "Audio controller           : $audio"
-echo "SCSI controller            : $scsi"
-echo "SATA controller            : $sata"
-echo "All Disk and Volume        : $sd"
-echo "Disk size                  : $lsblk"
-echo "Disk Running Model         : $diskmodel"
-echo "Mount Filesystem free/all  : $df"
-echo "Mount fstab count          : $fstab"
-echo "LVM Volume Group           : $vgs"
-echo "LVM Physical Volume        : $pvs"
-echo "LVM Logical Volume         : $lvs"
-echo "MD RAID Level/Status       : $md_info"
-echo "MD Active/Work/Fail/Spare  : $md_state"
-echo "Network Interfaces         : $interface"
-echo "Network Driver/Speed       : $net_driver"
-echo "DNS Resolv configutation   : $resolv_conf"
-echo "DNS Resolv conf link       : $resolv_link"
-echo "DNS Server systemd current : $dns_current"
-echo "DNS Server systemd list    : $dnslist"
-echo "Hosts file count addreses  : $hosts_file"
-echo "IPv6 disable               : $ipv6"
-echo "Route ip forward           : $route_ip_forward"
-echo "ICMP ignore broadcast/all  : $icmp_ignore_bc/$icmp_ignore_all"
-echo "ICMP accept/send redirect  : $icmp_accept/$icmp_send"
-echo "TCP SYN use cookies        : $tcp_syncookies"
-echo "TCP fastopen data connect  : $tcp_fastopen"
-echo "TCP SYN max backlog        : $tcp_max_syn_backlog"
-echo "TCP SYN-ACK max backlog    : $somaxconn"
-echo "TCP SYN/SYN-ACK retries    : $tcp_syn_retries/$tcp_synack_retries"
-echo "TCP Keepalive Time Live    : $keep_print=$keep_sum sec"
-echo "TCP orphan max socket      : $tcp_max_orphans"
-echo "TCP orphan retries count   : $tcp_orphan_retries"
-echo "TCP FIN timeout socket     : $tcp_fin_timeout sec"
-echo "TCP metrics save           : $tcp_no_metrics_save"
-echo "TCP mem min/load/max page  : $tcp_mem"
-echo "Socket in/out buffer min   : $rmem_min/$wmem_min byte"
-echo "Socket in/out default      : $rmem_default/$wmem_default byte"
-echo "Socket in/out buffer max   : $rmem_max/$wmem_max byte"
-echo "Socket TIME-WAIT max       : $tcp_max_tw_buckets"
-echo "Socket local port range    : $port_range"
-echo "Net Kernel max backlog     : $netdev_max_backlog"
-echo "Net reverse path filter    : $rp_filter"
-echo "Async IO request curr/max  : $aio/$aio_max"
-echo "Descriptor Files use/max   : $use/$descriptor"
-echo "Descriptor max for process : $proc_file"
-echo "List Open Files/All count  : $lsof_reg/$lsof_all"
-#echo "All dir and files count   : $du"
-echo "Limits count               : $limits"
-echo "Socket ESTAB count         : $ss"
-echo "Socket LISTEN unique port  : $ports"
-echo "UFW Status                 : $ufw_status"
-echo "UFW Rule allow/deny count  : $ufw_state"
-echo "FWD Status                 : $fwd_status"
-echo "FWD Rule ports/services    : $fwd_rules"
-echo "Iptables rule count        : $iptables"
-echo "Hosts allow/deny services  : $hosts_allow/$hosts_deny"  
-echo "Unit Startup/All count     : $unit_startup/$unit_all"
-echo "Cron tasks curr/all users  : $cron_current/$cron_all"
-echo "APT show auto/manual       : $apt_list ($showauto/$showmanual)"
-echo "APT Last Update            : $last_update"
-echo "APT List Upgrade count     : $list_update"
-echo "DPKG Packet count          : $dpkg"
-echo "SNAP Packet count          : $snap"
-echo "User/Group count           : $user/$group"
-echo "User using password        : $user_passwd "
-echo "User directory             : $home"
-echo "Sudo nopasswd/all count    : $sudo_count"
-echo "Login pass min/max days    : $login_min_days/$login_max_days"
-    echo "ssh port/login pass/root   : $ssh_port/$ssh_pass/$ssh_root"
-echo "Bash version               : $bash"
-echo "Python version             : $python"
-echo "Ansible version            : $ansible"
-echo "Docker/Compose version     : $docker_v"
-echo "Docker Volumes/Images      : $docker_i"
-echo "Docker Running/All         : $docker_p"
-echo "Docker LISTEN host ports   : $docker_host_port"
-echo "Zabbix Agent status        : $zabbix_status"
-echo "Zabbix Agent version       : $zabbix_ver"
-echo "Zabbix config              : $zabbix_conf"
-echo "Zabbix server              : $zabbix_server"
+echo "Hostname                         : $hn"
+echo "Uptime                           : $uptime"
+echo "Startup                          : $startup"
+#echo "GRUB boot parameters            : $grub_boot_param"
+echo "Local Time                       : $time"
+echo "Time Zone                        : $tz"
+echo "NTP service/synchronized         : $ntp_sync/$ntp_service"
+echo "NTP systemd service status       : $ntp_status"
+echo "NTP systemd current server sync  : $ntp_server"
+echo "NTPD status                      : $ntpd_status"
+echo "NTPD conf server/pool            : $ntpd_sp"
+echo "NTPD current server sync         : $ntpd_current_server"
+echo "Syslog service                   : $syslog_status"
+#echo "Syslog local server             : $syslog_local_server"
+echo "Syslog remote server             : $syslog_remote_server"
+echo "Syslog today/all error           : $syslog_error_today/$syslog_error_all"
+echo "Journal today/all error          : $journalctl_today/$journalctl_all"
+echo "OS                               : $os"
+echo "Kernel                           : $kernel"
+echo "Systemd version                  : $systemd_ver"
+echo "Hypervisor                       : $vm"
+echo "CPU                              : $cpu"
+echo "Core                             : $core"
+echo "Architecture                     : $arch"
+echo "L2                               : $l2"
+echo "L3                               : $l3"
+echo "Motherboard                      : $mb"
+echo "BIOS                             : $bios"
+echo "BIOS Version                     : $ver"
+echo "BIOS Release                     : $rel"
+echo "Process Started count            : $ps"
+echo "Running/All Process to System    : $run"
+echo "CPU avg 1/5/15 min               : $avg"
+echo -e "CPU avg usr/sys/wa/idle          : $us_avg\t$sy_avg\t$wa_avg\t$id_avg"
+echo -e "CPU cur usr/sys/wa/idle          : $us_cur\t$sy_cur\t$wa_cur\t$id_cur"
+echo -e "IOps avg in/out                  : $bi_avg\t$bo_avg"
+echo -e "IOps current in/out              : $bi_cur\t$bo_cur"
+echo "MEM use/cache/all                : $mem_use/$mem_cache/$mem_all MB"
+echo "MEM cache/buffer/dirty           : $cache/$buf/$dirty KB"
+echo "SWAP use/all                     : $swap_use/$swap_all MB"
+echo "SWAP Mount                       : $mount"
+echo "SWAP Running free mem            : $swaprun %"
+echo "Cache background/ratio           : $back_ratio/$ratio %"
+echo "Cache expire/writeback           : $expire/$writeback hundredths sec"
+echo "Ethernet Adapter                 : $eth"
+echo "VGA controller                   : $video"
+echo "Audio controller                 : $audio"
+echo "SCSI controller                  : $scsi"
+echo "SATA controller                  : $sata"
+echo "All Disk and Volume count        : $sd_count"
+echo "All Disk and Volume names        : $sd"
+echo "Disk size                        : $lsblk"
+echo "Disk all size                    : $lsblk_sum_gb GB"
+echo "Disk Running Model               : $diskmodel"
+echo "Mount Filesystem free/all        : $df"
+echo "Mount fstab count                : $fstab"
+echo "LVM Volume Group                 : $vgs"
+echo "LVM Physical Volume              : $pvs"
+echo "LVM Logical Volume               : $lvs"
+echo "MD RAID Level/Status             : $md_info"
+echo "MD Active/Work/Fail/Spare        : $md_state"
+echo "Network Interfaces               : $interface"
+echo "Network Driver/Speed             : $net_driver"
+echo "DNS Resolv configuration         : $resolv_conf"
+echo "DNS Resolv conf link             : $resolv_link"
+echo "DNS Server systemd list          : $dnslist"
+echo "DNS Server systemd current       : $dns_current"
+echo "Hosts file count addreses        : $hosts_file"
+echo "Socket ESTAB count               : $ss"
+echo "Socket LISTEN unique port        : $ports"
+echo "IPv6 disable                     : $ipv6"
+echo "Route ip forward                 : $route_ip_forward"
+echo "ICMP ignore broadcast/all        : $icmp_ignore_bc/$icmp_ignore_all"
+echo "ICMP accept/send redirect        : $icmp_accept/$icmp_send"
+echo "TCP SYN use cookies              : $tcp_syncookies"
+echo "TCP fastopen data connect        : $tcp_fastopen"
+echo "TCP SYN max backlog              : $tcp_max_syn_backlog"
+echo "TCP SYN-ACK max backlog          : $somaxconn"
+echo "TCP SYN/SYN-ACK retries          : $tcp_syn_retries/$tcp_synack_retries"
+echo "TCP Keepalive Time Live          : $keep_print=$keep_sum sec"
+echo "TCP orphan max socket            : $tcp_max_orphans"
+echo "TCP orphan retries count         : $tcp_orphan_retries"
+echo "TCP FIN timeout socket           : $tcp_fin_timeout sec"
+echo "TCP metrics save                 : $tcp_no_metrics_save"
+echo "TCP mem min/load/max page        : $tcp_mem"
+echo "Socket in/out buffer min         : $rmem_min/$wmem_min bytes"
+echo "Socket in/out default            : $rmem_default/$wmem_default bytes"
+echo "Socket in/out buffer max         : $rmem_max/$wmem_max bytes"
+echo "Socket TIME-WAIT max             : $tcp_max_tw_buckets"
+echo "Socket local port range          : $port_range"
+echo "Net Kernel max backlog           : $netdev_max_backlog"
+echo "Net reverse path filter          : $rp_filter"
+echo "Async IO request curr/max        : $aio/$aio_max"
+echo "Msg queues/count/size max        : $queues_max/$msg_max/$msgsize_max"
+echo "Descriptor Files use/no use      : $use/$no_use"
+echo "Descriptor Files max             : $descriptor"
+echo "Descriptor max for process       : $proc_file"
+echo "List Open Files/All count        : $lsof_reg/$lsof_all"
+echo "Limits configuration count       : $limits"
+echo "Limits User Open Files Soft/Hard : $limits_open_file count"
+echo "Limits User File Size  Soft/Hard : $limits_file_size blocks"
+echo "Limits User Stack Size Soft/Hard : $limits_stack_size kbytes"
+echo "Limits User Msg Queues Soft/Hard : $limits_msg_queues bytes"
+echo "Limits User User Proc  Soft/Hard : $limits_user_proc count"
+echo "Limits User CPU Time   Soft/Hard : $limits_cpu_time sec"
+echo "Limits User MEM Size   Soft/Hard : $limits_mem_size kbytes"
+echo "Limits Process Open Files S/H    : $limits_proc_open_file count"
+echo "Limits Process File Size  S/H    : $limits_proc_file_size blocks"
+echo "Limits Process Stack Size S/H    : $limits_proc_stack_size kbytes"
+echo "Limits Process Msg Queues S/H    : $limits_proc_msg_queues bytes"
+echo "Limits Process User Proc  S/H    : $limits_proc_user_proc count"
+echo "Limits Process CPU Time   S/H    : $limits_proc_cpu_time sec"
+echo "Limits Process MEM Size   S/H    : $limits_proc_mem_size kbytes" 
+echo "UFW Status                       : $ufw_status"
+echo "UFW Rule allow/deny count        : $ufw_state"
+echo "FWD Status                       : $fwd_status"
+echo "FWD Rule ports/services          : $fwd_rules"
+echo "Iptables rule count              : $iptables"
+echo "Hosts allow/deny services        : $hosts_allow/$hosts_deny"  
+echo "Unit Startup/All count           : $unit_startup/$unit_all"
+echo "Cron tasks curr/all users        : $cron_current/$cron_all"
+echo "APT show auto/manual             : $apt_list ($showauto/$showmanual)"
+echo "APT Last Update                  : $last_update"
+echo "APT List Upgrade count           : $list_update"
+echo "DPKG Packet count                : $dpkg"
+echo "SNAP Packet count                : $snap"
+echo "User/Group count                 : $user/$group"
+echo "User using password              : $user_passwd "
+echo "User directory                   : $home"
+echo "Sudo nopasswd/all count          : $sudo_count"
+echo "Login pass min/max days          : $login_min_days/$login_max_days"
+echo "ssh port/x11/login pass/root     : $ssh_port/$ssh_x11/$ssh_pass/$ssh_root"
+echo "Bash version                     : $bash"
+echo "Python version                   : $python"
+echo "Ansible version                  : $ansible"
+echo "Docker/Compose version           : $docker_v"
+echo "Docker Volumes/Images            : $docker_i"
+echo "Docker Running/All               : $docker_p"
+echo "Docker LISTEN host ports         : $docker_host_port"
+echo "Zabbix Agent status              : $zabbix_status"
+echo "Zabbix Agent version             : $zabbix_ver"
+echo "Zabbix config                    : $zabbix_conf"
+echo "Zabbix server                    : $zabbix_server"
 echo
 }
 
