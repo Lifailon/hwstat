@@ -88,8 +88,8 @@ Motherboard                      : 440BX Desktop Reference Platform
 BIOS                             : Phoenix Technologies LTD
 BIOS Version                     : 6.00
 BIOS Release                     : 11.12.2020
-Process Started count            : 276
-Running/All Process to System    : 2/567
+PS Process Started/Threads count : 271/559
+Process Running/All to System    : 2/567
 CPU avg 1/5/15 min               : 2.07 1.30 1.13
 CPU avg usr/sys/wa/idle          : 18   15      0       67
 CPU cur usr/sys/wa/idle          : 13   17      0       70
@@ -238,8 +238,8 @@ Motherboard                      : Permission denied
 BIOS                             : Permission denied
 BIOS Version                     : Permission denied
 BIOS Release                     : Permission denied
-Process Started count            : 305
-Running/All Process to System    : 2/610
+PS Process Started/Threads count : 291/595
+Process Running/All to System    : 2/610
 CPU avg 1/5/15 min               : 0.04 0.06 0.08
 CPU avg usr/sys/wa/idle          : 1    2       0       97
 CPU cur usr/sys/wa/idle          : 0    3       0       97
