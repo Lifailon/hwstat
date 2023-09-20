@@ -61,6 +61,17 @@ done
 }
 
 function hwstat {
+### Start jobs
+rm hwstat.tmp 2> /dev/null
+touch hwstat.tmp
+echo limits_proc_open_file $(limits-proc -n | sed "/^#\|^$/d" | sort | uniq -c) >> hwstat.tmp &
+echo limits_proc_file_size $(limits-proc -f | sed "/^#\|^$/d" | sort | uniq -c) >> hwstat.tmp &
+echo limits_proc_stack_size $(limits-proc -s | sed "/^#\|^$/d" | sort | uniq -c) >> hwstat.tmp &
+echo limits_proc_msg_queues $(limits-proc -q | sed "/^#\|^$/d" | sort | uniq -c) >> hwstat.tmp &
+echo limits_proc_user_proc $(limits-proc -u | sed "/^#\|^$/d" | sort | uniq -c) >> hwstat.tmp &
+echo limits_proc_cpu_time $(limits-proc -t | sed "/^#\|^$/d" | sort | uniq -c) >> hwstat.tmp &
+echo limits_proc_mem_size $(limits-proc -m | sed "/^#\|^$/d" | sort | uniq -c) >> hwstat.tmp &
+### Start function
 hn=$(uname -a | awk '{print $2}')
 uptime=$(uptime | sed -E "s/^ ..:..:.. up[ ]+//; s/ [0-9] user.+//; s/,//g")
 uptime=$(echo "$uptime ($(uptime -s))" | sed "s/  / /")
@@ -366,13 +377,6 @@ limits_user_proc=$(limits-curr u)
 limits_cpu_time=$(limits-curr t)
 limits_mem_size=$(limits-curr m)
 fi
-limits_proc_open_file=$(echo $(limits-proc -n | sed "/^#\|^$/d" | sort | uniq -c))
-limits_proc_file_size=$(echo $(limits-proc -f | sed "/^#\|^$/d" | sort | uniq -c))
-limits_proc_stack_size=$(echo $(limits-proc -s | sed "/^#\|^$/d" | sort | uniq -c))
-limits_proc_msg_queues=$(echo $(limits-proc -q | sed "/^#\|^$/d" | sort | uniq -c))
-limits_proc_user_proc=$(echo $(limits-proc -u | sed "/^#\|^$/d" | sort | uniq -c))
-limits_proc_cpu_time=$(echo $(limits-proc -t | sed "/^#\|^$/d" | sort | uniq -c))
-limits_proc_mem_size=$(echo $(limits-proc -m | sed "/^#\|^$/d" | sort | uniq -c))
 ### Firewall
 ufw_status=$(ufw status 2> /dev/null | sed -n 1p | awk '{print $2}')
 if [ ${#ufw_status} -eq 0 ]
@@ -526,6 +530,26 @@ zabbix_ver=$(/dev/null 2> /dev/null)
 zabbix_conf=$(/dev/null 2> /dev/null)
 zabbix_server=$(/dev/null 2> /dev/null)
 fi
+### Final jobs
+jobs_count=$(cat hwstat.tmp | wc -l)
+while :
+do
+    if [ $jobs_count -eq 7 ]
+        then
+        break
+    else
+        jobs_count=$(cat hwstat.tmp | wc -l)
+    fi
+done
+limits_proc_open_file=$(cat hwstat.tmp | grep limits_proc_mem_size | sed "s/limits_proc_mem_size //")
+limits_proc_file_size=$(cat hwstat.tmp | grep limits_proc_file_size | sed "s/limits_proc_file_size //")
+limits_proc_stack_size=$(cat hwstat.tmp | grep limits_proc_stack_size | sed "s/limits_proc_stack_size //")
+limits_proc_msg_queues=$(cat hwstat.tmp | grep limits_proc_msg_queues | sed "s/limits_proc_msg_queues //")
+limits_proc_user_proc=$(cat hwstat.tmp | grep limits_proc_user_proc | sed "s/limits_proc_user_proc //")
+limits_proc_cpu_time=$(cat hwstat.tmp | grep limits_proc_cpu_time | sed "s/limits_proc_cpu_time //")
+limits_proc_mem_size=$(cat hwstat.tmp | grep limits_proc_mem_size | sed "s/limits_proc_mem_size //")
+rm hwstat.tmp
+### End jobs
 echo
 echo "Hostname                         : $hn"
 echo "Uptime                           : $uptime"
