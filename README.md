@@ -1,12 +1,14 @@
-## hwstat
+## 🐧 hwstat
 
 Function collecting **hardware and software configutation** statistic as well **kernel settings and system limits** from different sources integral in the operating system for output in one place.
 
-It is convenient for the system administrator to get all the information on the system quickly without having to remember all the commands and filter the output. Can be used to reconcile OS settings by means of **diff (e.g. via pipeline)** and **metrics monitoring (e.g. via influxdb and grafana)**.
+It is convenient for the system administrator to get all the information on the system quickly without having to remember all the commands and filter the output. 
+
+Can be used to reconcile OS settings by means of 📑 **diff (e.g. via pipeline)** and 📊 **metrics monitoring (e.g. via influxdb and grafana)**.
 
 Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 
-### Sources of data collection:
+### 📚 Sources of data collection:
 
 - uname
 - uptime
@@ -60,7 +62,9 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 - docker **(use root permission)**
 - zabbix
 
-### Example 1:
+### 🚀 Example:
+
+Ubuntu 22.04 and **use root permission**
 
 ```bash
 root@devops-01:~# bash hwstat.sh
@@ -223,9 +227,7 @@ Zabbix config                     : /etc/zabbix/zabbix_agentd.conf
 Zabbix server                     : 192.168.3.102
 ```
 
-### Example 2:
-
-Use Ubuntu 20.04 and not root permission
+Ubuntu 20.04 and **not root permission**
 
 ```bash
 lifailon@pi-hole-01:~$ bash hwstat.sh
