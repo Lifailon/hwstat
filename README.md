@@ -13,7 +13,7 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 For quick start, run the command in your console:
 
 ```bash
-sudo -s curl https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh -o /usr/bin/hwstat
+sudo curl -s https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh -o /usr/bin/hwstat
 sudo chmod +x /usr/bin/hwstat
 ```
 
