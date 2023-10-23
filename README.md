@@ -10,10 +10,10 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 
 ### 🚀 Install
 
-Quick start:
+For quick start, run the command in your console:
 
 ```bash
-sudo curl https://raw.githubusercontent.com/Lifailon/net-tools/rsa/hwstat.sh -o /usr/bin/hwstat
+sudo -s curl https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh -o /usr/bin/hwstat
 sudo chmod +x /usr/bin/hwstat
 ```
 
