@@ -8,6 +8,15 @@ Can be used to reconcile OS settings by means of 📑 **diff (e.g. via pipeline)
 
 Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 
+### 🚀 Install
+
+Quick start:
+
+```bash
+sudo curl https://raw.githubusercontent.com/Lifailon/net-tools/rsa/hwstat.sh -o /usr/bin/hwstat
+sudo chmod +x /usr/bin/hwstat
+```
+
 ### 📚 Sources of data collection:
 
 - uname
@@ -62,7 +71,7 @@ Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
 - docker **(use root permission)**
 - zabbix
 
-### 🚀 Example:
+### 📑 Example:
 
 Ubuntu 22.04 and **use root permission**
 
