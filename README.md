@@ -1,79 +1,86 @@
-## 🐧 hwstat
+## hwstat (Hardware Statistics)
 
-Function collecting **hardware and software configutation** statistic as well **kernel settings and system limits** from different sources integral in the operating system for output in one place.
+Tool for quickly obtaining information about hardware characteristics, software configuration, kernel and limits in metrics format (in text or `json` format) from various sources built into the operating system.
 
-It is convenient for the system administrator to get all the information on the system quickly without having to remember all the commands and filter the output. 
+The script is written primarily for system administrators, so that they don't have to remember all the commands and their parameters, but instead get filtered output in one place.
 
-Can be used to reconcile OS settings by means of 📑 **diff (e.g. via pipeline)** and 📊 **metrics monitoring (e.g. via influxdb and grafana)**.
+### Data sources
 
-Tested by Ubuntu Server 20.04 and 22.04 and Hypervisor VMware
+- `uname`
+- `uptime`
+- `who`
+- `systemd-analyze`
+- `systemd-timesyncd`
+- `timedatectl`
+- `systemctl`
+- `ntpd`
+- `local`
+- `syslog`
+- `journalctl`
+- `lsb_release`
+- `lscpu`
+- `dmidecode` **\* use root permission**
+- `ps`
+- `loadavg`
+- `vmstat`
+- `free`
+- `meminfo`
+- `swapon`
+- `lspci`
+- `lsblk`
+- `df`
+- `fstab`
+- `lvm` **\* use root permission**
+- `md` **\* use root permission**
+- `ethtool`
+- `networkctl`
+- `systemd-resolve`
+- `resolvectl`
+- `hosts`
+- `ss`
+- `ufw` **\* use root permission**
+- `firewalld` **\* use root permission**
+- `iptables` **\* use root permission**
+- `hosts`
+- `apt`
+- `dpkg`
+- `snap`
+- `users`
+- `group`
+- `shadow` **\* use root permission**
+- `sudoers` **\* use root permission**
+- `login.defs`
+- `profile`
+- `bashrc`
+- `ssh`
+- `sysctl`
+- `lsof` (for full output **use root permission**)
+- `limits` for users (for output all users **use root permission**)
+- `limits` for processes (format: count unique processes and his `Soft/Hard` metrics)
+- `last logon`
+- `quota` **\* use root permission**
+- `bash`, `python`, `java` and `ansible` versions
+- `docker` **\* use root permission**
+- `zabbix`
 
-### 🚀 Install
+### Install
 
-For quick start, run the command in your console:
+You can run the script from the GitHub repository without installing it:
+
+```bash
+sudo curl -sS https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | bash
+```
+
+> The script does not make any changes to your system while it is running.
+
+Or run these commands to install the script on your system to run from anywhere:
 
 ```bash
 sudo curl -s https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh -o /usr/bin/hwstat
 sudo chmod +x /usr/bin/hwstat
 ```
 
-### 📚 Sources of data collection:
-
-- uname
-- uptime
-- systemd-analyze/systemd-timesyncd
-- timedatectl
-- systemctl
-- ntpd
-- local
-- syslog
-- journalctl
-- lsb_release
-- lscpu
-- dmidecode **(use root permission)**
-- ps
-- loadavg
-- vmstat
-- free
-- meminfo
-- swapon
-- lspci
-- lsblk
-- df
-- fstab
-- lvm **(use root permission)**
-- md **(use root permission)**
-- ethtool
-- networkctl
-- systemd-resolve/resolvectl
-- hosts
-- ss
-- ufw **(use root permission)**
-- firewalld **(use root permission)**
-- iptables **(use root permission)**
-- hosts allow/deny
-- apt
-- dpkg
-- snap
-- users/group
-- shadow **(use root permission)**
-- sudoers **(use root permission)**
-- login.defs
-- profile/bashrc
-- ssh
-- **sysctl** (vm, net, fs)
-- lsof **(for full output use root permission)**
-- **limits users (for output all users use root permission)**
-- **limits processes** (format: count unique processes and his Soft/Hard metrics)
-- last logon
-- quota **(use root permission)**
-- versions
-- docker **(use root permission)**
-- zabbix
-
-### 📑 Example:
-
-Ubuntu 22.04 and **use root permission**
+Example output on `Ubuntu Server 22.04` in `VMWare hypervisor` using **root permission**:
 
 ```bash
 root@devops-01:~# bash hwstat.sh
@@ -236,7 +243,7 @@ Zabbix config                     : /etc/zabbix/zabbix_agentd.conf
 Zabbix server                     : 192.168.3.102
 ```
 
-Ubuntu 20.04 and **not root permission**
+Example output on `Ubuntu Server 20.04` in `VMWare hypervisor` not **root permission**:
 
 ```bash
 lifailon@pi-hole-01:~$ bash hwstat.sh
