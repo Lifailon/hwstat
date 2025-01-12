@@ -70,22 +70,25 @@ The script is written primarily for system administrators, so that they don't ha
 You can run the script from the GitHub repository without installing it:
 
 ```bash
-sudo curl -sS https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | bash
+curl -sS https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | bash
+# Output in json format:
+curl -sS https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh | bash -s -- "json"
 ```
 
-> The script does not make any changes to your system while it is running.
+The script does not make any changes to your system while it is running.
 
 Or run these commands to install the script on your system to run from anywhere:
 
 ```bash
 sudo curl -s https://raw.githubusercontent.com/Lifailon/hwstat/rsa/hwstat.sh -o /usr/bin/hwstat
 sudo chmod +x /usr/bin/hwstat
+
+sudo hwstat json | jq .
 ```
 
 Example output on `Ubuntu Server` in `Hyper-V hypervisor` using **root permission**:
 
 ```json
-$ sudo bash hwstat.sh json | jq
 {
   "Hostname": "hv-dev-101",
   "Uptime": "16:37",

@@ -571,7 +571,7 @@ function hwstat {
             done
             quota_user_count="$quota_user_space_count/$quota_user_files_count"
         else
-            quota_user_count="Permission denied or has no quota enabled"
+            quota_user_count="Mountpoint not found or has no quota enabled"
         fi
     else
         quota_ver="Not installed"
