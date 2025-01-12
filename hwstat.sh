@@ -38,7 +38,7 @@ function limits-proc {
         elif [ $1 == "-t" ]; then
             limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max cpu time" | awk '{print $4"/"$5}') #$6
         elif [ $1 == "-m" ]; then
-            limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max realtime timeout" | awk '{print $4"/"$5}') # $6
+            limits=$(cat /proc/$pid/limits 2> /dev/null | grep "Max realtime timeout" | awk '{print $4"/"$5}') #$6
         fi
         if [ $1 == "-n" ] || [ $1 == "-f" ] || [ $1 == "-s" ] || [ $1 == "-q" ] || [ $1 == "-u" ] || [ $1 == "-t" ] || [ $1 == "-m" ]; then
             echo $limits
@@ -52,7 +52,6 @@ function limits-proc {
 function hwstat {
     hn=$(uname -a | awk '{print $2}')
     uptime=$(uptime | sed -E "s/^ ..:..:.. up[ ]+//; s/ [0-9] user.+//; s/,//g")
-    uptime=$(echo "$uptime ($(uptime -s))" | sed "s/  / /")
     startup=$(systemd-analyze | sed -n "1p" | sed "s/Startup finished in //")
     last_reboot_data=$(who -b | awk '{print $3}' | awk -F- '{print $3"."$2"."$1}')
     last_reboot_time=$(who -b | awk '{print $4,$5}')
@@ -102,14 +101,14 @@ function hwstat {
 
     ### lscpu
     vm=$(lscpu | grep Hypervisor | awk '{print $3}')
-    cpu=$(lscpu | grep "Model name" | sed -E "s/Model name:\s+//")
+    cpu=$(lscpu | grep "Model name" | sed -E "s/Model name:\s+//" | head -n 1)
     core=$(lscpu | grep "^CPU(s)" | awk '{print$2}')
     arch=$(lscpu | grep "Architecture" | sed -E "s/Architecture:\s+//")
-    virtualization=$(lscpu | grep Virtualization | awk '{print $3,$4}')
+    virtualization=$(lscpu | grep Virtualization | awk '{print $3}')
     l2=$(lscpu | grep L2 | awk '{print $3,$4}')
     l3=$(lscpu | grep L3 | awk '{print $3,$4}')
     #cpu_mhz=$(lscpu | grep MHz | sed -r "s/.+:\s+//")
-    cpu_mhz=$(cat /proc/cpuinfo | grep MHz | awk -F ": " '{print $2}')
+    cpu_mhz=$(cat /proc/cpuinfo | grep MHz | awk -F ": " '{print $2}' | head -n 1)
     modules=$(cat /proc/modules | wc -l) # lsmod
 
     ### dmidecode
@@ -117,7 +116,7 @@ function hwstat {
     if [ ${#mb} -ne 0 ]; then
         bios=$(dmidecode -t bios 2> /dev/null | grep Vendor | sed -E "s/.+Vendor: //")
         ver=$(dmidecode -t bios 2> /dev/null | grep Version | sed -E "s/.+Version: //")
-        rel=$(dmidecode -t bios 2> /dev/null | grep Release | sed -E "s/.+: //" | sed "s/\//./g")
+        rel=$(dmidecode -t bios 2> /dev/null | grep "Release Date" | sed -E "s/.+: //" | sed "s/\//./g")
     else
         mb="Permission denied"
         bios="Permission denied"
@@ -164,6 +163,14 @@ function hwstat {
     ratio=$(cat /proc/sys/vm/dirty_ratio)
     expire=$(cat /proc/sys/vm/dirty_expire_centisecs)
     writeback=$(cat /proc/sys/vm/dirty_writeback_centisecs)
+
+    ### lshw network
+    lshw_stats=$(lshw -class network 2> /dev/null)
+    interface_name=$(echo "$lshw_stats" | grep "logical" | head -n 1 | awk -F ": " '{print $2}')
+    interface_speed=$(echo "$lshw_stats" | grep "size" | head -n 1 | awk -F ": " '{print $2}')
+    interface_mac=$(echo "$lshw_stats" | grep "serial" | head -n 1 | awk -F ": " '{print $2}')
+    interface_info="$interface_name $interface_speed ($interface_mac)"
+    interface_conf=$(echo "$lshw_stats" | grep "configuration" | head -n 1 | awk -F ": " '{print $2}')
 
     ### lspci
     eth=$(lspci | grep -i ethernet | awk -F ": " '{print $NF}' | sed -n 1p)
@@ -254,37 +261,61 @@ function hwstat {
     else
     dns_current=$resolve
     fi
-    hosts_file=$(cat /etc/hosts | grep -E [0-9]+\.[0-9]+\.[0-9]+\.[0-9] | wc -l)
 
     ### Sockets
     ss=$(ss -tun | wc -l)
     ports=$(ss -tun | sed 1d | awk '{print $5}' | awk -F ":" '{print $NF","}' | sort | uniq)
     ports=$(echo $ports | sed -r "s/,$//")
 
-    ### Firewall
-    ufw_status=$(ufw status 2> /dev/null | sed -n 1p | awk '{print $2}')
-    if [ ${#ufw_status} -eq 0 ]; then
-        ufw_status="Permission denied or not installed"
-    elif [ $ufw_status == "active" ]; then
-        ufw_allow=$(ufw status | grep -i allow | wc -l)
-        ufw_deny=$(ufw status | grep -i deny | wc -l)
-        ufw_state=$(echo $ufw_allow/$ufw_deny)
-    fi
-    fwd_status=$(firewall-cmd --state 2> /dev/null)
-    if [ ${#fwd_status} -eq 0 ]; then
-        fwd_status="Permission denied or not installed"
-    elif [ $fwd_status == "running" ]; then
-        fwd_ports=$(firewall-cmd --list-port | wc -w)
-        fwd_service=$(firewall-cmd --list-service | wc -w)
-        fwd_rules=$(echo $fwd_ports/$fwd_service)
-    fi
-    nft_version=$(nft --version 2> /dev/null | awk '{print $2}' | sed -r "s/v//")
-    if [ ${#nft_version} -eq 0 ]; then
-        nft_version="Not installed"
-    fi
-    iptables=$(iptables -L 2> /dev/null | grep -E "tcp|udp" | wc -l)
+    ### Hosts
+    hosts_file=$(cat /etc/hosts | grep -E [0-9]+\.[0-9]+\.[0-9]+\.[0-9] | wc -l)
     hosts_allow=$(cat /etc/hosts.allow | grep -Pv "^$|^#" | wc -l)
     hosts_deny=$(cat /etc/hosts.deny | grep -Pv "^$|^#" | wc -l)
+
+    ### Firewall
+    iptables=$(iptables -L 2> /dev/null | grep -E "tcp|udp" | wc -l)
+    ufw_version=$(ufw version 2> /dev/null | sed -n 1p | sed -r "s/ufw //")
+    if [ ${#ufw_version} -ne 0 ]; then
+        ufw_status=$(ufw status | sed -n 1p | awk '{print $2}')
+        if [ ${#ufw_status} -eq 0 ]; then
+            ufw_status="Permission denied"
+        elif [ $ufw_status == "active" ]; then
+            ufw_allow=$(ufw status | grep -i allow | wc -l)
+            ufw_deny=$(ufw status | grep -i deny | wc -l)
+            ufw_state=$(echo $ufw_allow/$ufw_deny)
+        fi
+    else
+        ufw_version="Not installed"
+    fi
+    fwd_version=$(firewall-cmd --version 2> /dev/null)
+    if [ ${#fwd_version} -ne 0 ]; then
+        fwd_status=$(firewall-cmd --state 2> /dev/null)
+        if [ ${#fwd_status} -eq 0 ]; then
+            fwd_status="Permission denied"
+        elif [ $fwd_status == "running" ]; then
+            fwd_ports=$(firewall-cmd --list-port | wc -w)
+            fwd_service=$(firewall-cmd --list-service | wc -w)
+            fwd_rules=$(echo $fwd_ports/$fwd_service)
+        fi
+    else
+        fwd_version="Not installed"
+    fi
+    nft_version=$(nft --version 2> /dev/null | awk '{print $2}' | sed -r "s/v//")
+    if [ ${#nft_version} -ne 0 ]; then
+        nft_info=$(systemctl status nftables)
+        nft_stat=$(echo "$nft_info" | grep Active | awk '{print $2}')
+        nft_startup=$(echo "$nft_info" | grep Loaded | awk '{print $4}' | sed "s/;//")
+        nft_status="$nft_stat ($nft_startup)"
+        nft_chains=$(nft list ruleset 2> /dev/null | grep -E "^\s*chain" | wc -l)
+        if [ ${#nft_chains} -ne 0 ]; then
+            nft_tables=$(nft list tables 2> /dev/null | wc -l)
+            nft_rules="$nft_chains/$nft_tables"
+        else
+            nft_rules="Permission denied"
+        fi
+    else
+        nft_version="Not installed"
+    fi
 
     ### Units
     units=$(systemctl list-unit-files)
@@ -540,7 +571,7 @@ function hwstat {
             done
             quota_user_count="$quota_user_space_count/$quota_user_files_count"
         else
-            quota_user_count="Permission denied"
+            quota_user_count="Permission denied or has no quota enabled"
         fi
     else
         quota_ver="Not installed"
@@ -621,7 +652,7 @@ function hwstat {
 
     ### Zabbix
     zabbix_service=$(systemctl status zabbix-agent 2> /dev/null)
-    zabbix_status=$(printf "%s\n" "${zabbix_service[@]}" | grep Active | awk -F ": " '{print $2}')
+    zabbix_status=$(printf "%s\n" "${zabbix_service[@]}" | grep Active | awk '{print $2,$3}')
     if [ ${#zabbix_status} -eq 0 ]; then
         zabbix_status="Not installed"
     fi
@@ -637,7 +668,7 @@ function hwstat {
         zabbix_server=""
     fi
 
-raw_output=$(cat <<EOF
+    raw_output=$(cat <<EOF
 Hostname                          : $hn
 Uptime                            : $uptime
 Boot time                         : $startup
@@ -685,7 +716,9 @@ SWAP Mount                        : $mount
 SWAP Running free mem             : $swaprun %
 Cache background/ratio            : $back_ratio/$ratio %
 Cache expire/writeback            : $expire/$writeback hundredths sec
-Ethernet Adapter                  : $eth
+Ethernet Adapter name/speed/mac   : $interface_info
+Ethernet Adapter configuration    : $interface_conf
+Ethernet Adapter description      : $eth
 VGA controller                    : $video
 Audio controller                  : $audio
 SCSI controller                   : $scsi
@@ -701,7 +734,7 @@ Mount fstab count                 : $fstab
 LVM Volume Group                  : $vgs
 LVM Physical Volume               : $pvs
 LVM Logical Volume                : $lvs
-MD RAID Level/Status              : $md_info
+MD RAID level/status              : $md_info
 MD Active/Work/Fail/Spare         : $md_state
 Network Interfaces                : $interface
 Network Driver/Speed              : $net_driver
@@ -709,16 +742,20 @@ DNS Resolv configuration          : $resolv_conf
 DNS Resolv conf link              : $resolv_link
 DNS Server systemd list           : $dnslist
 DNS Server systemd current        : $dns_current
-Hosts file count addreses         : $hosts_file
 Socket ESTAB count                : $ss
 Socket LISTEN unique port         : $ports
-UFW Status                        : $ufw_status
+Hosts file count addreses         : $hosts_file
+Hosts allow/deny services         : $hosts_allow/$hosts_deny  
+Iptables rule count               : $iptables
+UFW version                       : $ufw_version
+UFW status                        : $ufw_status
 UFW Rule allow/deny count         : $ufw_state
-FWD Status                        : $fwd_status
+FWD version                       : $fwd_version
+FWD status                        : $fwd_status
 FWD Rule ports/services           : $fwd_rules
 NFT version                       : $nft_version
-Iptables rule count               : $iptables
-Hosts allow/deny services         : $hosts_allow/$hosts_deny  
+NFT status                        : $nft_status
+NFT Rule chains/tables count      : $nft_rules
 Unit Startup/All count            : $unit_startup/$unit_all
 Cron tasks curr/all users         : $cron_current/$cron_all
 APT show auto/manual              : $apt_list ($showauto/$showmanual)
@@ -766,19 +803,19 @@ Limits configuration count        : $limits_count
 Limits last change date           : $limits_date
 User logon before change Limits   : $logon_user
 Limits User Open Files Soft/Hard  : $limits_open_file count
-Limits User File Size  Soft/Hard  : $limits_file_size blocks
+Limits User File Size Soft/Hard   : $limits_file_size blocks
 Limits User Stack Size Soft/Hard  : $limits_stack_size kbytes
 Limits User Msg Queues Soft/Hard  : $limits_msg_queues bytes
-Limits User User Proc  Soft/Hard  : $limits_user_proc count
-Limits User CPU Time   Soft/Hard  : $limits_cpu_time sec
-Limits User MEM Size   Soft/Hard  : $limits_mem_size kbytes
+Limits User User Proc Soft/Hard   : $limits_user_proc count
+Limits User CPU Time Soft/Hard    : $limits_cpu_time sec
+Limits User MEM Size Soft/Hard    : $limits_mem_size kbytes
 Limits Process Open Files S/H     : $limits_proc_open_file count
-Limits Process File Size  S/H     : $limits_proc_file_size blocks
+Limits Process File Size S/H      : $limits_proc_file_size blocks
 Limits Process Stack Size S/H     : $limits_proc_stack_size kbytes
 Limits Process Msg Queues S/H     : $limits_proc_msg_queues bytes
-Limits Process User Proc  S/H     : $limits_proc_user_proc count
-Limits Process CPU Time   S/H     : $limits_proc_cpu_time sec
-Limits Process MEM Size   S/H     : $limits_proc_mem_size kbytes
+Limits Process User Proc S/H      : $limits_proc_user_proc count
+Limits Process CPU Time S/H       : $limits_proc_cpu_time sec
+Limits Process MEM Size S/H       : $limits_proc_mem_size kbytes
 Quota verison                     : $quota_ver
 Quota current Space use/hard/soft : $quota_current_space
 Quota current Files use/hard/soft : $quota_current_files
@@ -806,7 +843,188 @@ Zabbix server                     : $zabbix_server
 EOF
 )
 
-echo "$raw_output"
+json_output=$(cat <<EOF
+{
+    "Hostname"                          : "$hn",
+    "Uptime"                            : "$uptime",
+    "Boot time"                         : "$startup",
+    "Last reboot"                       : "$last_reboot",
+    "Local Time"                        : "$time",
+    "Time Zone"                         : "$tz",
+    "Language locale use"               : "$lang",
+    "NTP service/synchronized"          : "$ntp_sync/$ntp_service",
+    "NTP systemd service status"        : "$ntp_status",
+    "NTP systemd current server sync"   : "$ntp_server",
+    "NTPD status"                       : "$ntpd_status",
+    "NTPD conf server/pool"             : "$ntpd_sp",
+    "NTPD current server sync"          : "$ntpd_current_server",
+    "Syslog service"                    : "$syslog_status",
+    "Syslog remote server"              : "$syslog_remote_server",
+    "Syslog today/all error"            : "$syslog_error_today/$syslog_error_all",
+    "Journal today/all error"           : "$journalctl_today/$journalctl_all",
+    "OS"                                : "$os",
+    "Kernel"                            : "$kernel",
+    "Systemd version"                   : "$systemd_ver",
+    "Hypervisor"                        : "$vm",
+    "CPU"                               : "$cpu",
+    "Core"                              : "$core",
+    "Architecture"                      : "$arch",
+    "Virtualization"                    : "$virtualization",
+    "L2"                                : "$l2",
+    "L3"                                : "$l3",
+    "CPU MHz"                           : "$cpu_mhz",
+    "Modules count"                     : "$modules",
+    "Motherboard"                       : "$mb",
+    "BIOS"                              : "$bios",
+    "BIOS Version"                      : "$ver",
+    "BIOS Release"                      : "$rel",
+    "PS Process Started/Threads count"  : "$ps/$ps_threads",
+    "Process Running/All to System"     : "$run",
+    "CPU avg 1/5/15 min"                : "$avg",
+    "CPU avg usr/sys/wa/idle"           : "$us_avg/$sy_avg/$wa_avg/$id_avg",
+    "CPU cur usr/sys/wa/idle"           : "$us_cur/$sy_cur/$wa_cur/$id_cur",
+    "IOps avg in/out"                   : "$bi_avg/$bo_avg",
+    "IOps current in/out"               : "$bi_cur/$bo_cur",
+    "MEM use/cache/all"                 : "$mem_use/$mem_cache/$mem_all MB",
+    "MEM cache/buffer/dirty"            : "$cache/$buf/$dirty KB",
+    "SWAP use/all"                      : "$swap_use/$swap_all MB",
+    "SWAP Mount"                        : "$mount",
+    "SWAP Running free mem"             : "$swaprun %",
+    "Cache background/ratio"            : "$back_ratio/$ratio %",
+    "Cache expire/writeback"            : "$expire/$writeback hundredths sec",
+    "Ethernet Adapter name/speed/mac"   : "$interface_info",
+    "Ethernet Adapter configuration"    : "$interface_conf",
+    "Ethernet Adapter description"      : "$eth",
+    "VGA controller"                    : "$video",
+    "Audio controller"                  : "$audio",
+    "SCSI controller"                   : "$scsi",
+    "SATA controller"                   : "$sata",
+    "Filesystem type root/boot"         : "$fstype_root/$fstype_boot",
+    "All Disk and Volume count"         : "$sd_count",
+    "All Disk and Volume names"         : "$sd",
+    "Disk size"                         : "$lsblk",
+    "Disk all size"                     : "$lsblk_sum_gb GB",
+    "Disk Running Model"                : "$diskmodel",
+    "Mount Filesystem free/all"         : "$df",
+    "Mount fstab count"                 : "$fstab",
+    "LVM Volume Group"                  : "$vgs",
+    "LVM Physical Volume"               : "$pvs",
+    "LVM Logical Volume"                : "$lvs",
+    "MD RAID level/status"              : "$md_info",
+    "MD Active/Work/Fail/Spare"         : "$md_state",
+    "Network Interfaces"                : "$interface",
+    "Network Driver/Speed"              : "$net_driver",
+    "DNS Resolv configuration"          : "$resolv_conf",
+    "DNS Resolv conf link"              : "$resolv_link",
+    "DNS Server systemd list"           : "$dnslist",
+    "DNS Server systemd current"        : "$dns_current",
+    "Socket ESTAB count"                : "$ss",
+    "Socket LISTEN unique port"         : "$ports",
+    "Hosts file count addreses"         : "$hosts_file",
+    "Hosts allow/deny services"         : "$hosts_allow/$hosts_deny  ",
+    "Iptables rule count"               : "$iptables",
+    "UFW version"                       : "$ufw_version",
+    "UFW status"                        : "$ufw_status",
+    "UFW Rule allow/deny count"         : "$ufw_state",
+    "FWD version"                       : "$fwd_version",
+    "FWD status"                        : "$fwd_status",
+    "FWD Rule ports/services"           : "$fwd_rules",
+    "NFT version"                       : "$nft_version",
+    "NFT status"                        : "$nft_status",
+    "NFT Rule chains/tables count"      : "$nft_rules",
+    "Unit Startup/All count"            : "$unit_startup/$unit_all",
+    "Cron tasks curr/all users"         : "$cron_current/$cron_all",
+    "APT show auto/manual"              : "$apt_list ($showauto/$showmanual)",
+    "APT Last Update"                   : "$last_update",
+    "APT List Upgrade count"            : "$list_update",
+    "DPKG Packet count"                 : "$dpkg",
+    "SNAP Packet count"                 : "$snap",
+    "User/Group count"                  : "$user/$group",
+    "User using password"               : "$user_passwd ",
+    "User directory"                    : "$home",
+    "Sudo nopasswd/all count"           : "$sudo_count",
+    "Login pass min/max days"           : "$login_min_days/$login_max_days",
+    "Login idle timeout seconds"        : "$login_timeout",
+    "ssh port/x11/login pass/root"      : "$ssh_port/$ssh_x11/$ssh_pass/$ssh_root",
+    "ssh keepalive/interval/count"      : "$ssh_keep_alive/$ssh_alive_interval/$ssh_alive_count",
+    "IPv6 disable"                      : "$ipv6",
+    "Route ip forward"                  : "$route_ip_forward",
+    "ICMP ignore broadcast/all"         : "$icmp_ignore_bc/$icmp_ignore_all",
+    "ICMP accept/send redirect"         : "$icmp_accept/$icmp_send",
+    "TCP SYN use cookies"               : "$tcp_syncookies",
+    "TCP fastopen data connect"         : "$tcp_fastopen",
+    "TCP SYN max backlog"               : "$tcp_max_syn_backlog",
+    "TCP SYN-ACK max backlog"           : "$somaxconn",
+    "TCP SYN/SYN-ACK retries"           : "$tcp_syn_retries/$tcp_synack_retries",
+    "TCP Keepalive Time Live"           : "$keep_print=$keep_sum sec",
+    "TCP orphan max socket"             : "$tcp_max_orphans",
+    "TCP orphan retries count"          : "$tcp_orphan_retries",
+    "TCP FIN timeout socket"            : "$tcp_fin_timeout sec",
+    "TCP metrics save"                  : "$tcp_no_metrics_save",
+    "TCP mem min/load/max page"         : "$tcp_mem",
+    "Socket in/out buffer min"          : "$rmem_min/$wmem_min bytes",
+    "Socket in/out default"             : "$rmem_default/$wmem_default bytes",
+    "Socket in/out buffer max"          : "$rmem_max/$wmem_max bytes",
+    "Socket TIME-WAIT max"              : "$tcp_max_tw_buckets",
+    "Socket local port range"           : "$port_range",
+    "Net Kernel max backlog"            : "$netdev_max_backlog",
+    "Net reverse path filter"           : "$rp_filter",
+    "Async IO request curr/max"         : "$aio/$aio_max",
+    "Msg queues/count/size max"         : "$queues_max/$msg_max/$msgsize_max",
+    "Descriptor Files use/no use"       : "$use/$no_use",
+    "Descriptor Files max"              : "$descriptor",
+    "Descriptor max for process"        : "$proc_file",
+    "List Open Files/All count"         : "$lsof_reg/$lsof_all",
+    "Limits configuration count"        : "$limits_count",
+    "Limits last change date"           : "$limits_date",
+    "User logon before change Limits"   : "$logon_user",
+    "Limits User Open Files Soft/Hard"  : "$limits_open_file count",
+    "Limits User File Size Soft/Hard"   : "$limits_file_size blocks",
+    "Limits User Stack Size Soft/Hard"  : "$limits_stack_size kbytes",
+    "Limits User Msg Queues Soft/Hard"  : "$limits_msg_queues bytes",
+    "Limits User User Proc Soft/Hard"   : "$limits_user_proc count",
+    "Limits User CPU Time Soft/Hard"    : "$limits_cpu_time sec",
+    "Limits User MEM Size Soft/Hard"    : "$limits_mem_size kbytes",
+    "Limits Process Open Files S/H"     : "$limits_proc_open_file count",
+    "Limits Process File Size S/H"      : "$limits_proc_file_size blocks",
+    "Limits Process Stack Size S/H"     : "$limits_proc_stack_size kbytes",
+    "Limits Process Msg Queues S/H"     : "$limits_proc_msg_queues bytes",
+    "Limits Process User Proc S/H"      : "$limits_proc_user_proc count",
+    "Limits Process CPU Time S/H"       : "$limits_proc_cpu_time sec",
+    "Limits Process MEM Size S/H"       : "$limits_proc_mem_size kbytes",
+    "Quota verison"                     : "$quota_ver",
+    "Quota current Space use/hard/soft" : "$quota_current_space",
+    "Quota current Files use/hard/soft" : "$quota_current_files",
+    "Quota use disk count"              : "$quota_disk_count",
+    "Quota use user Space/Files count"  : "$quota_user_count",
+    "Bash version"                      : "$bash",
+    "Python version"                    : "$python",
+    "Perl version"                      : "$perl",
+    "PowerShell Core version"           : "$pwsh",
+    "Dotnet Runtime version"            : "$dotnet",
+    "Java OpenJDK verison"              : "$java",
+    "Node.js verison"                   : "$node_js",
+    "NPM verison"                       : "$npm",
+    "Go verison"                        : "$golang",
+    "Ansible version"                   : "$ansible",
+    "Docker version"                    : "$docker_version",
+    "Docker Compose version"            : "$docker_compose_version",
+    "Docker Volumes/Images"             : "$docker_i",
+    "Docker Containers running/All"     : "$docker_p",
+    "Docker LISTEN host ports"          : "$docker_host_port",
+    "Zabbix Agent status"               : "$zabbix_status",
+    "Zabbix Agent version"              : "$zabbix_ver",
+    "Zabbix config"                     : "$zabbix_conf",
+    "Zabbix server"                     : "$zabbix_server"
+}
+EOF
+)
+
+    if [ "$1" != "json" ]; then
+        echo "$raw_output"
+    else
+        echo "$json_output"
+    fi
 }
 
-hwstat
+hwstat "$1"
