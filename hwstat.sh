@@ -585,30 +585,52 @@ function hwstat {
     if [ ${#perl} -eq 0 ]; then
         perl="Not installed"
     fi
-    pwsh=$(pwsh --version | sed -r "s/PowerShell //")
-    if [ ${#pwsh} -eq 0 ]; then
-        pwsh="Not installed"
+    lua=$(lua -v | awk '{print $2}')
+    if [ ${#lua} -eq 0 ]; then
+        lua="Not installed"
     fi
-    dotnet=$(dotnet --info | grep Version | sed -r "s/.\s+Version:\s+//")
-    if [ ${#dotnet} -eq 0 ]; then
-        dotnet="Not installed"
+    gcc=$(c++ --version | head -n 1 | sed -r "s/^.+\)\s//")
+    if [ ${#gcc} -eq 0 ]; then
+        gcc="Not installed"
     fi
     java=$(java --version 2> /dev/null | sed -n 1p | awk '{print $2}')
     if [ ${#java} -eq 0 ]; then
         java="Not installed"
     fi
-    node_js=$(npm --version 2> /dev/null | sed -n 1p | sed "s/v//")
-    if [ ${#node_js} -eq 0 ]; then
-        node_js="Not installed"
-    fi
-    npm=$(node --version 2> /dev/null | sed -n 1p | sed "s/v//")
-    if [ ${#npm} -eq 0 ]; then
-        npm="Not installed"
+    dotnet=$(dotnet --info | grep Version | sed -r "s/.\s+Version:\s+//")
+    if [ ${#dotnet} -eq 0 ]; then
+        dotnet="Not installed"
     fi
     golang=$(go version 2> /dev/null | sed -n 1p | awk '{print $3}' | sed "s/go//")
     if [ ${#golang} -eq 0 ]; then
         golang="Not installed"
     fi
+    node_js=$(npm --version 2> /dev/null | sed -n 1p | sed "s/v//")
+    if [ ${#node_js} -eq 0 ]; then
+        node_js="Not installed"
+    fi
+
+    # Package Manager version/count
+    npm_ver=$(node --version 2> /dev/null | sed -n 1p | sed "s/v//")
+    if [ ${#npm_ver} -eq 0 ]; then
+        npm="Not installed"
+    else
+        npm=$npm_ver" ("$(npm list -g --depth=0 | grep -vE '^$|^/.+' | wc -l)" packages)"
+    fi
+    pip_ver=$(pip --version | awk '{print $2}')
+    if [ ${#pip_ver} -eq 0 ]; then
+        pip="Not installed"
+    else
+        pip=$brew_ver" ("$(pip list | tail -n +3 | wc -l)" packages)"
+    fi
+    brew_ver=$(brew --version | awk '{print $2}')
+    if [ ${#brew_ver} -eq 0 ]; then
+        brew="Not installed"
+    else
+        brew=$brew_ver" ("$(brew info)")"
+    fi
+
+    # Ansible
     ansible=$(ansible --version 2> /dev/null | sed -n 1p | sed "s/ansible //")
     if [ ${#ansible} -eq 0 ]; then
         ansible="Not installed"
@@ -824,12 +846,15 @@ Quota use user Space/Files count  : $quota_user_count
 Bash version                      : $bash
 Python version                    : $python
 Perl version                      : $perl
-PowerShell Core version           : $pwsh
-Dotnet Runtime version            : $dotnet
+Lua version                       : $lua
+GCC (GNU Compiler) version        : $gcc
 Java OpenJDK verison              : $java
-Node.js verison                   : $node_js
-NPM verison                       : $npm
+Dotnet Runtime version            : $dotnet
 Go verison                        : $golang
+Node.js verison                   : $node_js
+NPM verison/packages              : $npm
+Pip verison/packages              : $pip
+Brew verison/packages             : $brew
 Ansible version                   : $ansible
 Docker version                    : $docker_version
 Docker Compose version            : $docker_compose_version
@@ -1000,12 +1025,15 @@ json_output=$(cat <<EOF
     "Bash version"                      : "$bash",
     "Python version"                    : "$python",
     "Perl version"                      : "$perl",
-    "PowerShell Core version"           : "$pwsh",
-    "Dotnet Runtime version"            : "$dotnet",
+    "Lua version"                       : "$lua",
+    "GCC (GNU Compiler) version"        : "$gcc",
     "Java OpenJDK verison"              : "$java",
-    "Node.js verison"                   : "$node_js",
-    "NPM verison"                       : "$npm",
+    "Dotnet Runtime version"            : "$dotnet",
     "Go verison"                        : "$golang",
+    "Node.js verison"                   : "$node_js",
+    "NPM verison/packages"              : "$npm",
+    "Pip verison/packages"              : "$pip",
+    "Brew verison/packages"             : "$brew",
     "Ansible version"                   : "$ansible",
     "Docker version"                    : "$docker_version",
     "Docker Compose version"            : "$docker_compose_version",

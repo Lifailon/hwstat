@@ -61,7 +61,8 @@ The script is written primarily for system administrators, so that they don't ha
 - `limits` for processes (format: count unique processes and his `Soft/Hard` metrics)
 - `last logon`
 - `quota` **\* use root permission**
-- `bash`, `python`, `perl`, `pwsh`, `dotnet`, `java`, `node`, `npm`, `go` and `ansible` versions
+- `bash`, `python`, `perl`, `lua`, `gcc`, `java`, `dotnet`, `node`, `go` and `ansible` versions
+- `npm`, `pip`, `brew`
 - `docker` **\* use root permission**
 - `zabbix`
 
@@ -245,12 +246,15 @@ Example output on `Ubuntu Server` in `Hyper-V hypervisor` using **root permissio
   "Bash version": "5.2.21",
   "Python version": "3.12.3",
   "Perl version": "5.38.2",
-  "PowerShell Core version": "7.4.6",
-  "Dotnet Runtime version": "8.0.12",
+  "Lua version": "5.2.4",
+  "GCC (GNU Compiler) version": "13.3.0",
   "Java OpenJDK verison": "21.0.5",
+  "Dotnet Runtime version": "8.0.12",
+  "Go verison": "1.23.5",
   "Node.js verison": "9.2.0",
-  "NPM verison": "18.19.1",
-  "Go verison": "1.23.4",
+  "NPM verison/packages": "18.19.1 (3 packages)",
+  "Pip verison/packages": "4.4.6 (83 packages)",
+  "Brew verison/packages": "4.4.6 (11 kegs, 8,929 files, 975.7MB)",
   "Ansible version": "Not installed",
   "Docker version": "24.0.7",
   "Docker Compose version": "Not installed",
