@@ -62,7 +62,7 @@ The script is written primarily for system administrators, so that they don't ha
 - `last logon`
 - `quota` **\* use root permission**
 - `bash`, `python`, `perl`, `lua`, `gcc`, `java`, `dotnet`, `node`, `go` and `ansible` versions
-- `npm`, `pip`, `brew`
+- `npm`, `pip`, `brew` packages count
 - `docker` **\* use root permission**
 - `zabbix`
 
@@ -253,7 +253,7 @@ Example output on `Ubuntu Server` in `Hyper-V hypervisor` using **root permissio
   "Go verison": "1.23.5",
   "Node.js verison": "9.2.0",
   "NPM verison/packages": "18.19.1 (3 packages)",
-  "Pip verison/packages": "4.4.6 (83 packages)",
+  "Pip verison/packages": "24.0 (83 packages)",
   "Brew verison/packages": "4.4.6 (11 kegs, 8,929 files, 975.7MB)",
   "Ansible version": "Not installed",
   "Docker version": "24.0.7",

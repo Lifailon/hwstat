@@ -621,7 +621,7 @@ function hwstat {
     if [ ${#pip_ver} -eq 0 ]; then
         pip="Not installed"
     else
-        pip=$brew_ver" ("$(pip list | tail -n +3 | wc -l)" packages)"
+        pip=$pip_ver" ("$(pip list | tail -n +3 | wc -l)" packages)"
     fi
     brew_ver=$(brew --version | awk '{print $2}')
     if [ ${#brew_ver} -eq 0 ]; then
@@ -629,6 +629,8 @@ function hwstat {
     else
         brew=$brew_ver" ("$(brew info)")"
     fi
+    # go_packages=$(go list std | wc -l)
+    # go_bin=$(ls $GOPATH/bin | wc -l)
 
     # Ansible
     ansible=$(ansible --version 2> /dev/null | sed -n 1p | sed "s/ansible //")
